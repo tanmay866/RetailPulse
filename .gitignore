@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# Data - ignore large files, keep folder structure
+data/raw/*.csv
+data/raw/*.xlsx
+data/raw/*.xls
+data/processed/*.csv
+data/interim/*.csv
+
+# Models - large binary files
+models/*.pkl
+models/*.h5
+models/*.joblib
+models/*.model
+
+# Reports - generated figures (can be reproduced)
+reports/figures/*.png
+reports/figures/*.jpg
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
