@@ -8,3 +8,10 @@ openpyxl
 jupyter
 ipykernel
 kneed
+statsmodels
+mlflow
+prophet
+torch
+streamlit
+psycopg2-binary
+redis

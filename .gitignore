@@ -41,3 +41,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# MLflow - local tracking database and run artifacts
+mlflow.db
+mlruns/

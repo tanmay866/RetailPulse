@@ -2,7 +2,10 @@
 disable-search-path-heuristics = true
 # resolve imports from the project root so `from src.segmentation import ...` works
 search-path = ["."]
+# exclude pyrefly's virtual in-memory notebook cells (false positives — cells analysed in isolation)
+project-excludes = ["**/__pyrefly_virtual__/**"]
 # suppress "cannot find type stubs" warnings for third-party packages
 [errors]
 untyped-import = false
+
 

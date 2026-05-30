@@ -26,14 +26,17 @@ RetailPulse/
 │   ├── eda.ipynb
 │   ├── cleaning.ipynb
 │   ├── validation.ipynb
-│   └── segmentation.ipynb
+│   ├── segmentation.ipynb
+│   └── forecasting.ipynb       ← time-series forecasting prep (Day 4)
 ├── src/
 │   ├── feature_engineering.py
-│   └── segmentation.py   ← clustering functions (K-Means, DBSCAN)
+│   ├── segmentation.py         ← clustering functions (K-Means, DBSCAN)
+│   └── forecasting.py          ← time-series feature engineering and stationarity
 ├── models/               ← trained model files (not tracked by git)
 ├── reports/
 │   └── figures/          ← generated charts
 ├── main.py               ← end-to-end segmentation pipeline
+├── prepare_forecast.py   ← end-to-end forecasting prep pipeline (Day 4)
 ├── pyrefly.toml          ← Pyrefly type checker config
 ├── requirements.txt
 └── .gitignore
@@ -71,6 +74,8 @@ cd RetailPulse
 pip install -r requirements.txt
 ```
 
+**Key dependencies:** pandas, numpy, scikit-learn, matplotlib, seaborn, statsmodels, mlflow, great_expectations, kneed
+
 Then download the datasets (see above) and place them in `data/raw/`.
 
 ---
@@ -84,4 +89,4 @@ Then download the datasets (see above) and place them in `data/raw/`.
 | Data Validation (Great Expectations) | Done |
 | Customer Segmentation (K-Means, DBSCAN) | Done |
 | Churn Prediction | Pending |
-| Demand Forecasting | Pending |
+| Demand Forecasting (prep) | Done |
