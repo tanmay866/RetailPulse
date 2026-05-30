@@ -1,0 +1,8 @@
+# prevent pyrefly from auto-detecting src/ as the import root
+disable-search-path-heuristics = true
+# resolve imports from the project root so `from src.segmentation import ...` works
+search-path = ["."]
+# suppress "cannot find type stubs" warnings for third-party packages
+[errors]
+untyped-import = false
+
