@@ -19,18 +19,22 @@ Internship project at Zidio Development.
 ```
 RetailPulse/
 ├── data/
-│   ├── raw/          ← place downloaded CSVs here
-│   ├── interim/      ← cleaned intermediate files
-│   └── processed/    ← final output files (RFM scores, etc.)
+│   ├── raw/              ← place downloaded CSVs here
+│   ├── interim/          ← cleaned intermediate files
+│   └── processed/        ← final output files (RFM scores, segments, etc.)
 ├── notebooks/
 │   ├── eda.ipynb
 │   ├── cleaning.ipynb
-│   └── validation.ipynb
+│   ├── validation.ipynb
+│   └── segmentation.ipynb
 ├── src/
-│   └── feature_engineering.py
-├── models/           ← trained model files (not tracked by git)
+│   ├── feature_engineering.py
+│   └── segmentation.py   ← clustering functions (K-Means, DBSCAN)
+├── models/               ← trained model files (not tracked by git)
 ├── reports/
-│   └── figures/      ← generated charts
+│   └── figures/          ← generated charts
+├── main.py               ← end-to-end segmentation pipeline
+├── pyrefly.toml          ← Pyrefly type checker config
 ├── requirements.txt
 └── .gitignore
 ```
@@ -78,6 +82,6 @@ Then download the datasets (see above) and place them in `data/raw/`.
 | EDA | Done |
 | Data Cleaning & Feature Engineering | Done |
 | Data Validation (Great Expectations) | Done |
-| Customer Segmentation (K-Means, DBSCAN) | In Progress |
+| Customer Segmentation (K-Means, DBSCAN) | Done |
 | Churn Prediction | Pending |
 | Demand Forecasting | Pending |
