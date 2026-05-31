@@ -9,8 +9,9 @@ Internship project at Zidio Development.
 
 - Customer segmentation using RFM scoring and clustering (K-Means, DBSCAN)
 - Churn prediction using classification models
-- Demand forecasting using time series models
+- Demand forecasting using time series models (Prophet, LSTM)
 - Data validation with Great Expectations
+- Experiment tracking with MLflow
 
 ---
 
@@ -19,25 +20,44 @@ Internship project at Zidio Development.
 ```
 RetailPulse/
 ├── data/
-│   ├── raw/              ← place downloaded CSVs here
-│   ├── interim/          ← cleaned intermediate files
-│   └── processed/        ← final output files (RFM scores, segments, etc.)
+│   ├── raw/                        ← place downloaded CSVs here
+│   ├── interim/                    ← cleaned intermediate files
+│   └── processed/
+│       ├── retail_clean.csv        ← 779k cleaned transactions
+│       ├── rfm_scores.csv          ← RFM scores for 5,878 customers
+│       ├── customer_segments.csv   ← K-Means + DBSCAN segment labels
+│       ├── daily_revenue_rolling.csv
+│       └── daily_revenue_ts.csv    ← 709-row feature-engineered daily series
+├── models/
+│   └── prophet_model.pkl           ← trained Prophet forecasting model
 ├── notebooks/
 │   ├── eda.ipynb
 │   ├── cleaning.ipynb
 │   ├── validation.ipynb
 │   ├── segmentation.ipynb
-│   └── forecasting.ipynb       ← time-series forecasting prep (Day 4)
-├── src/
-│   ├── feature_engineering.py
-│   ├── segmentation.py         ← clustering functions (K-Means, DBSCAN)
-│   └── forecasting.py          ← time-series feature engineering and stationarity
-├── models/               ← trained model files (not tracked by git)
+│   └── forecasting.ipynb           ← time-series forecasting walkthrough
 ├── reports/
-│   └── figures/          ← generated charts
-├── main.py               ← end-to-end segmentation pipeline
-├── prepare_forecast.py   ← end-to-end forecasting prep pipeline (Day 4)
-├── pyrefly.toml          ← Pyrefly type checker config
+│   └── figures/
+│       ├── ts_decomposition.png
+│       ├── ts_acf_pacf.png
+│       ├── train_test_split.png
+│       ├── prophet_test_predictions.png
+│       ├── prophet_residuals.png
+│       ├── prophet_components.png
+│       ├── prophet_changepoints.png
+│       ├── prophet_cv_metrics.png
+│       ├── prophet_tuning.png
+│       └── prophet_forecast.png
+├── src/
+│   ├── feature_engineering.py      ← load/clean sales, RFM, rolling stats
+│   ├── segmentation.py             ← K-Means, DBSCAN, evaluation, visualisation
+│   └── forecasting.py              ← Prophet + LSTM functions, evaluation, MLflow
+├── tests/
+│   └── test_forecasting.py         ← 7 pytest unit tests (all passing)
+├── main.py                         ← segmentation pipeline CLI entry point
+├── prepare_forecast.py             ← time-series data prep pipeline
+├── run_models.py                   ← Prophet + LSTM training runner
+├── pyrefly.toml
 ├── requirements.txt
 └── .gitignore
 ```
@@ -47,36 +67,58 @@ RetailPulse/
 ## Datasets
 
 Datasets are not included in this repo due to file size.
-Download them from Kaggle and place in `data/raw/` folder:
+Download them from Kaggle and place in `data/raw/`:
 
 1. **Online Retail II**
    Link: https://www.kaggle.com/datasets/mashlyn/online-retail-ii-uci
-   File: `online_retail_II.csv` → place in `data/raw/`
+   File: `online_retail_II.csv`
 
 2. **Customer Churn**
    Link: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
-   File: `online_retail_customer_churn.csv` → place in `data/raw/`
+   File: `online_retail_customer_churn.csv`
 
 3. **Retail Store Inventory**
    Link: https://www.kaggle.com/datasets/anirudhchauhan/retail-store-inventory-forecasting-dataset
-   File: `retail_store_inventory.csv` → place in `data/raw/`
+   File: `retail_store_inventory.csv`
 
 ---
 
 ## Setup
 
 ```bash
-# clone the repo
 git clone https://github.com/tanmay866/RetailPulse.git
 cd RetailPulse
-
-# install dependencies
 pip install -r requirements.txt
 ```
 
-**Key dependencies:** pandas, numpy, scikit-learn, matplotlib, seaborn, statsmodels, mlflow, great_expectations, kneed
+**Key dependencies:** pandas, numpy, scikit-learn, matplotlib, seaborn, statsmodels,
+prophet, torch, mlflow, great_expectations, kneed
 
-Then download the datasets (see above) and place them in `data/raw/`.
+Download the datasets (see above) and place them in `data/raw/`.
+
+---
+
+## How to Run
+
+### Segmentation pipeline
+```bash
+python main.py
+```
+
+### Forecasting — data prep
+```bash
+python prepare_forecast.py
+```
+
+### Forecasting — train models
+```bash
+python run_models.py
+```
+
+### Tests
+```bash
+pytest tests/ -v
+```
 
 ---
 
@@ -87,6 +129,8 @@ Then download the datasets (see above) and place them in `data/raw/`.
 | EDA | Done |
 | Data Cleaning & Feature Engineering | Done |
 | Data Validation (Great Expectations) | Done |
-| Customer Segmentation (K-Means, DBSCAN) | Done |
+| Customer Segmentation (K-Means + DBSCAN) | Done |
+| Time-Series Forecasting Prep | Done |
+| Baseline Prophet Model | Done |
 | Churn Prediction | Pending |
-| Demand Forecasting | Pending |
+| LSTM Forecaster (PyTorch) | Pending |
