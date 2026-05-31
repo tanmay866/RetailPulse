@@ -28,6 +28,7 @@ models/*.pkl
 models/*.h5
 models/*.joblib
 models/*.model
+models/*.ckpt
 
 # Reports - generated figures (can be reproduced)
 reports/figures/*.png

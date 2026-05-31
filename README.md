@@ -29,34 +29,42 @@ RetailPulse/
 │       ├── daily_revenue_rolling.csv
 │       └── daily_revenue_ts.csv    ← 709-row feature-engineered daily series
 ├── models/
-│   └── prophet_model.pkl           ← trained Prophet forecasting model
+│   ├── prophet_model.pkl           ← trained Prophet forecasting model
+│   ├── lstm_forecaster.pt          ← Day 5 raw PyTorch LSTM weights
+│   ├── lstm_scaler.pkl             ← scaler for Day 5 LSTM
+│   ├── lstm_lightning_checkpoint.ckpt  ← best Lightning checkpoint (gitignored)
+│   └── lstm_lightning_scaler.pkl   ← scaler for Lightning LSTM
 ├── notebooks/
 │   ├── eda.ipynb
 │   ├── cleaning.ipynb
 │   ├── validation.ipynb
 │   ├── segmentation.ipynb
-│   └── forecasting.ipynb           ← time-series forecasting walkthrough
+│   ├── forecasting.ipynb           ← Prophet + Day 5 LSTM walkthrough
+│   └── lstm_lightning.ipynb        ← Day 6 PyTorch Lightning LSTM walkthrough
 ├── reports/
 │   └── figures/
 │       ├── ts_decomposition.png
 │       ├── ts_acf_pacf.png
-│       ├── train_test_split.png
-│       ├── prophet_test_predictions.png
-│       ├── prophet_residuals.png
+│       ├── prophet_forecast.png
 │       ├── prophet_components.png
 │       ├── prophet_changepoints.png
 │       ├── prophet_cv_metrics.png
 │       ├── prophet_tuning.png
-│       └── prophet_forecast.png
+│       ├── forecast_comparison.png
+│       ├── lstm_training_curve.png      ← train vs val loss per epoch
+│       └── lstm_lightning_forecast.png  ← Actual vs Prophet vs LSTM-Lightning
 ├── src/
 │   ├── feature_engineering.py      ← load/clean sales, RFM, rolling stats
 │   ├── segmentation.py             ← K-Means, DBSCAN, evaluation, visualisation
-│   └── forecasting.py              ← Prophet + LSTM functions, evaluation, MLflow
+│   ├── forecasting.py              ← Prophet + raw LSTM, evaluation, MLflow
+│   └── lstm_lightning.py           ← PyTorch Lightning LSTM, DataModule, trainer
 ├── tests/
-│   └── test_forecasting.py         ← 7 pytest unit tests (all passing)
+│   ├── test_forecasting.py         ← 7 pytest unit tests for Day 5 pipeline
+│   └── test_lstm_lightning.py      ← 4 pytest unit tests for Day 6 Lightning LSTM
 ├── main.py                         ← segmentation pipeline CLI entry point
 ├── prepare_forecast.py             ← time-series data prep pipeline
-├── run_models.py                   ← Prophet + LSTM training runner
+├── run_models.py                   ← Prophet + raw LSTM training runner (Day 5)
+├── run_lstm.py                     ← PyTorch Lightning LSTM runner (Day 6)
 ├── pyrefly.toml
 ├── requirements.txt
 └── .gitignore
@@ -92,7 +100,7 @@ pip install -r requirements.txt
 ```
 
 **Key dependencies:** pandas, numpy, scikit-learn, matplotlib, seaborn, statsmodels,
-prophet, torch, mlflow, great_expectations, kneed
+prophet, torch, pytorch-lightning, mlflow, great_expectations, kneed
 
 Download the datasets (see above) and place them in `data/raw/`.
 
@@ -110,9 +118,14 @@ python main.py
 python prepare_forecast.py
 ```
 
-### Forecasting — train models
+### Forecasting — Prophet + raw LSTM (Day 5)
 ```bash
 python run_models.py
+```
+
+### Forecasting — PyTorch Lightning LSTM (Day 6)
+```bash
+python run_lstm.py
 ```
 
 ### Tests
@@ -132,5 +145,9 @@ pytest tests/ -v
 | Customer Segmentation (K-Means + DBSCAN) | Done |
 | Time-Series Forecasting Prep | Done |
 | Baseline Prophet Model | Done |
+| LSTM Forecaster — PyTorch Lightning | Done |
 | Churn Prediction | Pending |
-| LSTM Forecaster (PyTorch) | Pending |
+
+---
+
+
