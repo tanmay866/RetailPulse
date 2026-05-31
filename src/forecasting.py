@@ -320,6 +320,179 @@ def plot_prophet_forecast(model, forecast, save_path='reports/figures/prophet_fo
     print(f'saved {save_path}')
 
 
+def tune_prophet(train_df, test_df, target='Revenue',
+                 save_path='reports/figures/prophet_tuning.png'):
+    """Grid-search over changepoint_prior_scale and seasonality_mode.
+
+    Trains one Prophet model per config, evaluates on test_df, returns a
+    DataFrame of results sorted by RMSE (best first).
+    """
+    grid = [
+        {'changepoint_prior_scale': 0.05, 'seasonality_mode': 'additive'},
+        {'changepoint_prior_scale': 0.30, 'seasonality_mode': 'additive'},
+        {'changepoint_prior_scale': 0.05, 'seasonality_mode': 'multiplicative'},
+        {'changepoint_prior_scale': 0.30, 'seasonality_mode': 'multiplicative'},
+    ]
+
+    prophet_df = pd.DataFrame({'ds': train_df.index, 'y': train_df[target].values})
+    future_df  = pd.DataFrame({'ds': test_df.index})
+
+    records = []
+    for cfg in grid:
+        label = f"cps={cfg['changepoint_prior_scale']}  mode={cfg['seasonality_mode']}"
+        print(f'  training: {label}')
+        m = Prophet(
+            changepoint_prior_scale=cfg['changepoint_prior_scale'],
+            seasonality_mode=cfg['seasonality_mode'],
+            yearly_seasonality=True,
+            weekly_seasonality=True,
+            daily_seasonality=False,
+        )
+        m.fit(prophet_df)
+        yhat = np.clip(m.predict(future_df)['yhat'].values, 0, None)  # type: ignore[arg-type]
+        metrics = evaluate_forecast(test_df[target], yhat)
+        records.append({
+            'changepoint_prior_scale': cfg['changepoint_prior_scale'],
+            'seasonality_mode':        cfg['seasonality_mode'],
+            'mae':                     metrics['mae'],
+            'rmse':                    metrics['rmse'],
+            'mape':                    metrics['mape'],
+            '_model':                  m,
+            '_preds':                  yhat,
+        })
+
+    results = (
+        pd.DataFrame(records)
+        .sort_values('rmse')
+        .reset_index(drop=True)
+    )
+
+    # bar chart comparison
+    labels = [
+        f"cps={r['changepoint_prior_scale']}\n{r['seasonality_mode']}"
+        for _, r in results.iterrows()
+    ]
+    x = np.arange(len(labels))
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+
+    axes[0].bar(x, results['mae'],  color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
+    axes[0].set_xticks(x); axes[0].set_xticklabels(labels, fontsize=9)
+    axes[0].set_title('MAE by Config', fontweight='bold')
+    axes[0].set_ylabel('MAE (£)')
+    axes[0].grid(axis='y', alpha=0.3)
+
+    axes[1].bar(x, results['rmse'], color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
+    axes[1].set_xticks(x); axes[1].set_xticklabels(labels, fontsize=9)
+    axes[1].set_title('RMSE by Config (sorted best→worst)', fontweight='bold')
+    axes[1].set_ylabel('RMSE (£)')
+    axes[1].grid(axis='y', alpha=0.3)
+
+    plt.suptitle('Prophet Hyperparameter Grid — Test-Set Metrics', fontweight='bold', fontsize=13, y=1.02)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f'saved {save_path}')
+
+    return results
+
+
+def prophet_cross_validate(model, initial='450 days', period='30 days', horizon='90 days',
+                           save_path='reports/figures/prophet_cv_metrics.png'):
+    """Run Prophet rolling-window cross-validation and plot RMSE/MAE by horizon.
+
+    initial is set to 450 days so yearly seasonality (365.25 days) fits inside
+    the first training window. Returns (cv_df, metrics_df).
+    """
+    from prophet.diagnostics import cross_validation, performance_metrics
+
+    cv_df = cross_validation(model, initial=initial, period=period, horizon=horizon, parallel=None)
+    # disable_tqdm not available in all versions; mape is dropped when y=0 exists
+    metrics_df = performance_metrics(cv_df, rolling_window=0.1)
+    metrics_df['horizon_days'] = metrics_df['horizon'].dt.days
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+    axes[0].plot(metrics_df['horizon_days'], metrics_df['rmse'],
+                 color='darkorange', linewidth=1.5, marker='o', markersize=3)
+    axes[0].set_title('RMSE by Forecast Horizon', fontweight='bold')
+    axes[0].set_xlabel('Horizon (days ahead)')
+    axes[0].set_ylabel('RMSE (£)')
+    axes[0].grid(alpha=0.3)
+
+    axes[1].plot(metrics_df['horizon_days'], metrics_df['mae'],
+                 color='steelblue', linewidth=1.5, marker='o', markersize=3)
+    axes[1].set_title('MAE by Forecast Horizon', fontweight='bold')
+    axes[1].set_xlabel('Horizon (days ahead)')
+    axes[1].set_ylabel('MAE (£)')
+    axes[1].grid(alpha=0.3)
+
+    plt.suptitle('Prophet Cross-Validation — Error by Forecast Horizon', fontweight='bold', fontsize=13, y=1.02)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f'saved {save_path}')
+
+    return cv_df, metrics_df
+
+
+def plot_prophet_changepoints(model, df, target='Revenue', save_path='reports/figures/prophet_changepoints.png'):
+    """Plot revenue series overlaid with Prophet changepoints and their trend-delta weights."""
+    import matplotlib.dates as mdates
+
+    deltas = model.params['delta'].mean(axis=0)
+    changepoints = model.changepoints.values
+    significant = np.abs(deltas) > np.percentile(np.abs(deltas), 50)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 8), sharex=True,
+                                   gridspec_kw={'height_ratios': [3, 1]})
+
+    ax1.plot(df.index, df[target], color='steelblue', linewidth=0.9, label='Actual Revenue')
+    for cp, sig in zip(changepoints, significant):
+        color = 'crimson' if sig else 'lightcoral'
+        alpha = 0.8 if sig else 0.3
+        ax1.axvline(cp, color=color, linestyle='--', linewidth=0.8, alpha=alpha)
+
+    from matplotlib.lines import Line2D
+    handles = [
+        Line2D([0], [0], color='steelblue', label='Revenue'),
+        Line2D([0], [0], color='crimson',   linestyle='--', label='Strong changepoint'),
+        Line2D([0], [0], color='lightcoral',linestyle='--', label='Weak changepoint'),
+    ]
+    ax1.legend(handles=handles, fontsize=9)
+    ax1.set_ylabel('Revenue (£)')
+    ax1.set_title('Revenue with Prophet Changepoints', fontweight='bold')
+    ax1.grid(axis='y', alpha=0.3)
+
+    colors = ['crimson' if d > 0 else 'steelblue' for d in deltas]
+    ax2.bar(changepoints, deltas, color=colors, width=5, alpha=0.75)
+    ax2.axhline(0, color='black', linewidth=0.7)
+    ax2.set_ylabel('Trend delta')
+    ax2.set_title('Changepoint Weights (+ = upward shift, - = downward)', fontweight='bold')
+    ax2.grid(axis='y', alpha=0.3)
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
+
+    plt.suptitle('Prophet Changepoint Analysis — Daily Revenue', fontweight='bold', fontsize=13, y=1.01)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f'saved {save_path}')
+
+
+def plot_prophet_components(model, forecast, save_path='reports/figures/prophet_components.png'):
+    """Plot Prophet trend + seasonality components and save to disk."""
+    fig = model.plot_components(forecast)
+    axes = fig.get_axes()
+    titles = ['Trend', 'Weekly Seasonality', 'Yearly Seasonality']
+    for ax, title in zip(axes, titles):
+        ax.set_title(title, fontweight='bold', fontsize=11)
+        ax.grid(axis='y', alpha=0.3)
+    plt.suptitle('Prophet Model Components — Daily Revenue', fontweight='bold', fontsize=13, y=1.01)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f'saved {save_path}')
+
+
 # ---------------------------------------------------------------------------
 # LSTM (PyTorch)
 # ---------------------------------------------------------------------------

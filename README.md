@@ -89,4 +89,4 @@ Then download the datasets (see above) and place them in `data/raw/`.
 | Data Validation (Great Expectations) | Done |
 | Customer Segmentation (K-Means, DBSCAN) | Done |
 | Churn Prediction | Pending |
-| Demand Forecasting (prep) | Done |
+| Demand Forecasting | Pending |
