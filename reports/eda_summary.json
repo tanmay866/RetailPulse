@@ -1,0 +1,29 @@
+{
+  "cleaned_rows": 779425,
+  "date_range": {
+    "start": "2009-12-01",
+    "end": "2011-12-09"
+  },
+  "total_revenue_gbp": 17374804.27,
+  "unique_customers": 5878,
+  "unique_products": 5283,
+  "rfm_segment_counts": {
+    "Potential Loyalists": 1453,
+    "Loyal Customers": 1357,
+    "Champions": 1295,
+    "At Risk": 967,
+    "Lost": 806
+  },
+  "top_10_products_by_revenue": {
+    "REGENCY CAKESTAND 3 TIER": 277656.25,
+    "WHITE HANGING HEART T-LIGHT HOLDER": 247048.01,
+    "PAPER CRAFT , LITTLE BIRDIE": 168469.6,
+    "Manual": 151777.67,
+    "JUMBO BAG RED RETROSPOT": 134307.44,
+    "POSTAGE": 124648.04,
+    "ASSORTED COLOUR BIRD ORNAMENT": 124351.86,
+    "PARTY BUNTING": 103283.38,
+    "MEDIUM CERAMIC TOP STORAGE JAR": 81416.73,
+    "PAPER CHAIN KIT 50'S CHRISTMAS ": 76598.18
+  }
+}

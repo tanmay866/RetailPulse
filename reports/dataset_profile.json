@@ -1,0 +1,134 @@
+{
+  "retail_clean": {
+    "name": "retail_clean",
+    "rows": 779425,
+    "columns": 9,
+    "column_names": [
+      "Invoice",
+      "StockCode",
+      "Description",
+      "Quantity",
+      "InvoiceDate",
+      "Price",
+      "Customer ID",
+      "Country",
+      "Revenue"
+    ],
+    "dtypes": {
+      "Invoice": "int64",
+      "StockCode": "object",
+      "Description": "object",
+      "Quantity": "int64",
+      "InvoiceDate": "datetime64[ns]",
+      "Price": "float64",
+      "Customer ID": "int64",
+      "Country": "object",
+      "Revenue": "float64"
+    },
+    "missing_values": {},
+    "date_range": {
+      "start": "2009-12-01",
+      "end": "2011-12-09",
+      "span_days": 738
+    },
+    "revenue_stats": {
+      "min": 0.001,
+      "max": 168469.6,
+      "mean": 22.2918,
+      "std": 227.4271,
+      "total": 17374804.27
+    },
+    "unique_customers": 5878,
+    "unique_products": 5283,
+    "unique_invoices": 36969,
+    "countries": 41
+  },
+  "rfm_scores": {
+    "name": "rfm_scores",
+    "rows": 5878,
+    "columns": 10,
+    "column_names": [
+      "Customer ID",
+      "Recency",
+      "Frequency",
+      "Monetary",
+      "R_score",
+      "F_score",
+      "M_score",
+      "RFM_Score",
+      "RFM_Total",
+      "Segment"
+    ],
+    "dtypes": {
+      "Customer ID": "int64",
+      "Recency": "int64",
+      "Frequency": "int64",
+      "Monetary": "float64",
+      "R_score": "int64",
+      "F_score": "int64",
+      "M_score": "int64",
+      "RFM_Score": "int64",
+      "RFM_Total": "int64",
+      "Segment": "object"
+    },
+    "missing_values": {},
+    "segment_distribution": {
+      "Potential Loyalists": 1453,
+      "Loyal Customers": 1357,
+      "Champions": 1295,
+      "At Risk": 967,
+      "Lost": 806
+    }
+  },
+  "daily_revenue_ts": {
+    "name": "daily_revenue_ts",
+    "rows": 709,
+    "columns": 15,
+    "column_names": [
+      "Revenue",
+      "Quantity",
+      "log_Revenue",
+      "log_Quantity",
+      "day_of_week",
+      "month",
+      "quarter",
+      "is_weekend",
+      "is_month_end",
+      "lag_1",
+      "lag_7",
+      "lag_30",
+      "rolling_7_mean",
+      "rolling_30_mean",
+      "rolling_7_std"
+    ],
+    "dtypes": {
+      "Revenue": "float64",
+      "Quantity": "int64",
+      "log_Revenue": "float64",
+      "log_Quantity": "float64",
+      "day_of_week": "int64",
+      "month": "int64",
+      "quarter": "int64",
+      "is_weekend": "bool",
+      "is_month_end": "bool",
+      "lag_1": "float64",
+      "lag_7": "float64",
+      "lag_30": "float64",
+      "rolling_7_mean": "float64",
+      "rolling_30_mean": "float64",
+      "rolling_7_std": "float64"
+    },
+    "missing_values": {},
+    "date_range": {
+      "start": "2009-12-31",
+      "end": "2011-12-09",
+      "span_days": 709
+    },
+    "revenue_stats": {
+      "min": 0.0,
+      "max": 184347.66,
+      "mean": 23542.03,
+      "std": 18183.88
+    }
+  }
+}

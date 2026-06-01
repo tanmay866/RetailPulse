@@ -1,4 +1,7 @@
 import os
+
+import mlflow
+import mlflow.pyfunc
 import pandas as pd
 
 from src.forecasting import (
@@ -13,7 +16,6 @@ from src.forecasting import (
     plot_forecast_comparison,
     save_lstm,
     save_prophet,
-    log_model_metrics,
 )
 
 os.makedirs('models', exist_ok=True)
@@ -47,12 +49,21 @@ plot_prophet_forecast(prophet_model, full_forecast)
 print('\n--- Prophet: saving model ---')
 save_prophet(prophet_model)
 
-log_model_metrics(
-    'prophet',
-    metrics=prophet_metrics,
-    params={'yearly_seasonality': True, 'weekly_seasonality': True},
-    run_name='prophet-eval',
-)
+print('\n--- Prophet: logging to MLflow ---')
+mlflow.set_experiment('RetailPulse-Forecasting')
+with mlflow.start_run(run_name='prophet-baseline'):
+    mlflow.set_tags({'model_type': 'prophet', 'target': 'daily_revenue', 'dataset': 'online_retail_II'})
+    mlflow.log_params({
+        'seasonality_mode':        'additive',
+        'changepoint_prior_scale': 0.05,
+        'yearly_seasonality':      True,
+        'weekly_seasonality':      True,
+        'daily_seasonality':       False,
+    })
+    mlflow.log_metrics(prophet_metrics)
+    mlflow.log_artifact('models/prophet_model.pkl',             artifact_path='model')
+    mlflow.log_artifact('reports/figures/prophet_forecast.png', artifact_path='plots')
+print('MLflow run logged: prophet-baseline')
 
 
 # ---------- LSTM ----------
@@ -78,12 +89,15 @@ print(f'MAPE : {lstm_metrics["mape"]}%')
 print('\n--- LSTM: saving model ---')
 save_lstm(lstm_model, scaler)
 
-log_model_metrics(
-    'lstm',
-    metrics=lstm_metrics,
-    params={'seq_len': 30, 'hidden_size': 64, 'num_layers': 2, 'epochs': 50, 'lr': 0.001},
-    run_name='lstm-eval',
-)
+print('\n--- LSTM: logging to MLflow ---')
+mlflow.set_experiment('RetailPulse-Forecasting')
+with mlflow.start_run(run_name='lstm-vanilla-baseline'):
+    mlflow.set_tags({'model_type': 'lstm', 'framework': 'pytorch', 'target': 'daily_revenue', 'dataset': 'online_retail_II'})
+    mlflow.log_params({'seq_len': 30, 'hidden_size': 64, 'num_layers': 2, 'epochs': 50, 'lr': 0.001})
+    mlflow.log_metrics(lstm_metrics)
+    mlflow.log_artifact('models/lstm_forecaster.pt', artifact_path='model')
+    mlflow.log_artifact('models/lstm_scaler.pkl',    artifact_path='model')
+print('MLflow run logged: lstm-vanilla-baseline')
 
 
 # ---------- Comparison ----------

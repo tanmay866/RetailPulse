@@ -28,6 +28,9 @@ BATCH_SIZE  = 32
 MAX_EPOCHS  = 50
 PATIENCE    = 10
 
+SCALER_PATH = 'models/lstm_lightning_scaler.pkl'
+CKPT_PATH   = 'models/lstm_lightning_checkpoint.ckpt'
+
 # ---------- load data ----------
 print('--- loading dataset ---')
 df = pd.read_csv('data/processed/daily_revenue_ts.csv', index_col=0, parse_dates=True)
@@ -36,40 +39,10 @@ print(f'shape: {df.shape}')
 train, test = train_test_split_ts(df)
 print(f'train: {len(train)}  test: {len(test)}')
 
-# ---------- train ----------
+# ---------- train + evaluate + log ----------
 print('\n--- training LSTM (Lightning) ---')
-model, dm = train_lstm_lightning(
-    train['Revenue'],
-    seq_len=SEQ_LEN,
-    hidden_size=HIDDEN_SIZE,
-    num_layers=NUM_LAYERS,
-    dropout=DROPOUT,
-    lr=LR,
-    batch_size=BATCH_SIZE,
-    max_epochs=MAX_EPOCHS,
-    patience=PATIENCE,
-)
-
-# ---------- forecast ----------
-print('\n--- forecasting on test period ---')
-lstm_preds = forecast_lstm_lightning(
-    model,
-    seed_series=train['Revenue'],
-    steps=len(test),
-    scaler=dm.scaler,
-    seq_len=SEQ_LEN,
-)
-
-# ---------- evaluate ----------
-metrics = evaluate_forecast(test['Revenue'], lstm_preds)
-print(f'MAE  : {metrics["mae"]}')
-print(f'RMSE : {metrics["rmse"]}')
-print(f'MAPE : {metrics["mape"]}%')
-
-# ---------- log metrics + model artifact to MLflow ----------
-print('\n--- logging to MLflow ---')
-mlflow.set_experiment('retailpulse-forecasting')
-with mlflow.start_run(run_name='lstm-lightning-eval'):
+mlflow.set_experiment('RetailPulse-Forecasting')
+with mlflow.start_run(run_name='lstm-lightning-baseline') as run:
     mlflow.log_params({
         'seq_len':     SEQ_LEN,
         'hidden_size': HIDDEN_SIZE,
@@ -80,15 +53,51 @@ with mlflow.start_run(run_name='lstm-lightning-eval'):
         'max_epochs':  MAX_EPOCHS,
         'patience':    PATIENCE,
     })
+    mlflow.set_tags({
+        'model_type': 'lstm',
+        'framework':  'pytorch_lightning',
+        'target':     'daily_revenue',
+        'dataset':    'online_retail_II',
+    })
+
+    model, dm = train_lstm_lightning(
+        train['Revenue'],
+        seq_len=SEQ_LEN,
+        hidden_size=HIDDEN_SIZE,
+        num_layers=NUM_LAYERS,
+        dropout=DROPOUT,
+        lr=LR,
+        batch_size=BATCH_SIZE,
+        max_epochs=MAX_EPOCHS,
+        patience=PATIENCE,
+        mlflow_run_id=run.info.run_id,
+    )
+
+    print('\n--- forecasting on test period ---')
+    lstm_preds = forecast_lstm_lightning(
+        model,
+        seed_series=train['Revenue'],
+        steps=len(test),
+        scaler=dm.scaler,
+        seq_len=SEQ_LEN,
+    )
+
+    metrics = evaluate_forecast(test['Revenue'], lstm_preds)
+    print(f'MAE  : {metrics["mae"]}')
+    print(f'RMSE : {metrics["rmse"]}')
+    print(f'MAPE : {metrics["mape"]}%')
+
     mlflow.log_metrics(metrics)
     mlflow.pytorch.log_model(model, artifact_path='lstm_lightning_model')
-print('MLflow run logged: lstm-lightning-eval')
+    if os.path.exists(CKPT_PATH):
+        mlflow.log_artifact(CKPT_PATH, artifact_path='checkpoint')
+
+print('MLflow run logged: lstm-lightning-baseline')
 
 # ---------- save scaler ----------
-scaler_path = 'models/lstm_lightning_scaler.pkl'
-with open(scaler_path, 'wb') as f:
+with open(SCALER_PATH, 'wb') as f:
     pickle.dump(dm.scaler, f)
-print(f'saved {scaler_path}')
+print(f'saved {SCALER_PATH}')
 
 # ---------- comparison plot ----------
 print('\n--- comparison plot ---')
