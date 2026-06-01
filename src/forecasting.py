@@ -220,7 +220,7 @@ def plot_decomposition(series, period=7, save_path='reports/figures/ts_decomposi
 
 
 def log_dataset_stats(df, train, test, stationarity_result, missing_dates_filled=0):
-    """Log dataset prep stats to MLflow under the RetailPulse-Forecasting experiment.
+    """Log dataset prep stats to MLflow under the retailpulse-forecasting experiment.
 
     Args:
         df: the final feature-engineered DataFrame (after dropna)
@@ -229,7 +229,7 @@ def log_dataset_stats(df, train, test, stationarity_result, missing_dates_filled
         stationarity_result: dict returned by test_stationarity()
         missing_dates_filled: number of dates added by fill_missing_dates()
     """
-    mlflow.set_experiment('RetailPulse-Forecasting')
+    mlflow.set_experiment('retailpulse-forecasting')
 
     with mlflow.start_run(run_name='ts-dataset-prep'):
         mlflow.log_params({
@@ -641,8 +641,8 @@ def load_prophet(path='models/prophet_model.pkl'):
 
 
 def log_model_metrics(model_name, metrics, params=None, run_name=None):
-    """Log forecast evaluation metrics to MLflow under RetailPulse-Forecasting."""
-    mlflow.set_experiment('RetailPulse-Forecasting')
+    """Log forecast evaluation metrics to MLflow under retailpulse-forecasting."""
+    mlflow.set_experiment('retailpulse-forecasting')
     run_name = run_name or f'{model_name}-eval'
     with mlflow.start_run(run_name=run_name):
         if params:

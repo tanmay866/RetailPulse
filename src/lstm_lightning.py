@@ -109,9 +109,11 @@ class LSTMLightning(pl.LightningModule):
 def build_trainer(max_epochs: int = 50, patience: int = 10,
                   run_name: str = 'lstm-lightning',
                   checkpoint_dir: str = 'models',
+                  checkpoint_name: str = 'lstm_lightning_checkpoint',
+                  experiment_name: str = 'retailpulse-forecasting',
                   run_id: str | None = None) -> pl.Trainer:
     mlflow_logger = MLFlowLogger(
-        experiment_name='RetailPulse-Forecasting',
+        experiment_name=experiment_name,
         run_name=run_name,
         run_id=run_id,
     )
@@ -122,7 +124,7 @@ def build_trainer(max_epochs: int = 50, patience: int = 10,
             EarlyStopping(monitor='val_loss', patience=patience, mode='min'),
             ModelCheckpoint(
                 dirpath=checkpoint_dir,
-                filename='lstm_lightning_checkpoint',
+                filename=checkpoint_name,
                 monitor='val_loss',
                 save_top_k=1,
                 mode='min',
@@ -144,13 +146,21 @@ def train_lstm_lightning(
     max_epochs: int = 50,
     patience: int = 10,
     mlflow_run_id: str | None = None,
+    checkpoint_name: str = 'lstm_lightning_checkpoint',
+    experiment_name: str = 'retailpulse-forecasting',
 ) -> tuple[LSTMLightning, RetailDataModule]:
     """Scale, sequence, and train LSTM with Lightning. Returns (model, datamodule)."""
     dm = RetailDataModule(train_series, seq_len=seq_len,
                           batch_size=batch_size, val_split=0.1)
     model = LSTMLightning(hidden_size=hidden_size, num_layers=num_layers,
                           dropout=dropout, lr=lr)
-    trainer = build_trainer(max_epochs=max_epochs, patience=patience, run_id=mlflow_run_id)
+    trainer = build_trainer(
+        max_epochs=max_epochs,
+        patience=patience,
+        checkpoint_name=checkpoint_name,
+        experiment_name=experiment_name,
+        run_id=mlflow_run_id,
+    )
     trainer.fit(model, datamodule=dm)
     return model, dm
 

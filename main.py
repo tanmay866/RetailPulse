@@ -6,10 +6,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from src.segmentation import (
-    preprocess_rfm, elbow_analysis, silhouette_analysis, select_best_k,
+    preprocess_rfm, select_best_k,
     run_kmeans, find_eps, run_dbscan,
     evaluate_clusters, reduce_to_2d,
-    cluster_profiles, assign_business_labels, remove_outliers
+    cluster_profiles, assign_business_labels
 )
 
 os.makedirs('reports/figures', exist_ok=True)
@@ -27,7 +27,8 @@ print('X_scaled shape:', X_scaled.shape)
 
 
 print('\n--- step 3: dbscan - detect noise points ---')
-dbscan_labels = run_dbscan(X_scaled, eps=0.6055, min_samples=5, random_state=42)
+eps = find_eps(X_scaled, min_samples=5)
+dbscan_labels = run_dbscan(X_scaled, eps=eps, min_samples=5, random_state=42)
 outlier_mask  = dbscan_labels == -1
 print(f'noise points found: {outlier_mask.sum()}')
 
@@ -49,12 +50,7 @@ kmeans_labels, kmeans_model = run_kmeans(X_clean, best_k, random_state=42)
 sizes = pd.Series(kmeans_labels).value_counts().sort_index()
 print('cluster sizes:')
 print(sizes.to_string())
-min_size = sizes.min()
-print(f'min cluster size: {min_size}  (threshold: 58)')
-if min_size >= 58:
-    print('all clusters above threshold [ok]')
-else:
-    print('warning: cluster below threshold')
+print(f'min cluster size: {sizes.min()}')
 
 
 
@@ -68,11 +64,6 @@ print('-' * 48)
 print(f'{"Silhouette":<22} | {km_scores["silhouette"]:>10.4f} | {db_scores["silhouette"]:>10.4f}')
 print(f'{"Davies-Bouldin":<22} | {km_scores["davies_bouldin"]:>10.4f} | {db_scores["davies_bouldin"]:>10.4f}')
 print(f'{"Calinski-Harabasz":<22} | {km_scores["calinski_harabasz"]:>10.2f} | {db_scores["calinski_harabasz"]:>10.2f}')
-
-if km_scores['davies_bouldin'] < 0.9145:
-    print(f'\nK-Means DB score improved: {km_scores["davies_bouldin"]:.4f} < 0.9145 [ok]')
-else:
-    print(f'\nwarning: K-Means DB score {km_scores["davies_bouldin"]:.4f} not improved')
 
 print('\n--- step 8: visualize ---')
 coords_2d = reduce_to_2d(X_clean, random_state=42)

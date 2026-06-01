@@ -41,7 +41,7 @@ print(f'train: {len(train)}  test: {len(test)}')
 
 # ---------- train + evaluate + log ----------
 print('\n--- training LSTM (Lightning) ---')
-mlflow.set_experiment('RetailPulse-Forecasting')
+mlflow.set_experiment('retailpulse-forecasting')
 with mlflow.start_run(run_name='lstm-lightning-baseline') as run:
     mlflow.log_params({
         'seq_len':     SEQ_LEN,

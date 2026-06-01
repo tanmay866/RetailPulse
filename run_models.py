@@ -50,7 +50,7 @@ print('\n--- Prophet: saving model ---')
 save_prophet(prophet_model)
 
 print('\n--- Prophet: logging to MLflow ---')
-mlflow.set_experiment('RetailPulse-Forecasting')
+mlflow.set_experiment('retailpulse-forecasting')
 with mlflow.start_run(run_name='prophet-baseline'):
     mlflow.set_tags({'model_type': 'prophet', 'target': 'daily_revenue', 'dataset': 'online_retail_II'})
     mlflow.log_params({
@@ -90,7 +90,7 @@ print('\n--- LSTM: saving model ---')
 save_lstm(lstm_model, scaler)
 
 print('\n--- LSTM: logging to MLflow ---')
-mlflow.set_experiment('RetailPulse-Forecasting')
+mlflow.set_experiment('retailpulse-forecasting')
 with mlflow.start_run(run_name='lstm-vanilla-baseline'):
     mlflow.set_tags({'model_type': 'lstm', 'framework': 'pytorch', 'target': 'daily_revenue', 'dataset': 'online_retail_II'})
     mlflow.log_params({'seq_len': 30, 'hidden_size': 64, 'num_layers': 2, 'epochs': 50, 'lr': 0.001})
