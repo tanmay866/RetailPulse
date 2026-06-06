@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import pandas as pd
@@ -46,6 +47,12 @@ def load_daily_revenue_ts() -> pd.DataFrame:
 @st.cache_data(ttl=3600)
 def load_inventory_recommendations() -> pd.DataFrame:
     return pd.read_csv(DATA_PROCESSED / "inventory_recommendations.csv")
+
+
+@st.cache_resource
+def load_prophet_model():
+    with open(ROOT / "models" / "prophet_model.pkl", "rb") as f:
+        return pickle.load(f)
 
 
 def figure_path(filename: str) -> Path:
