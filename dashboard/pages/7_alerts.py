@@ -515,9 +515,9 @@ if not adf.empty:
         hovertemplate="<b>%{x|%Y-%m-%d}</b><br>£%{y:,.0f}<br>z=%{text}<extra>Anomaly</extra>",
     ))
 
-# Current-frame vertical line
+# Current-frame vertical line — pass date as ISO string (Plotly 5.x requirement)
 fig.add_vline(
-    x=metrics["date"], line_dash="dash", line_color="#212121", line_width=1.5,
+    x=metrics["date"].isoformat(), line_dash="dash", line_color="#212121", line_width=1.5,
     annotation_text="NOW", annotation_position="top right",
     annotation_font_color="#212121",
 )
