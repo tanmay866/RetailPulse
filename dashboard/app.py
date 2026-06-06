@@ -16,6 +16,7 @@ pg = st.navigation(
         st.Page("pages/4_forecasting.py",         title="Forecasting",         icon="📈"),
         st.Page("pages/5_inventory.py",           title="Inventory",           icon="📦"),
         st.Page("pages/7_alerts.py",              title="Real-Time Alerts",    icon="🚨"),
+        st.Page("pages/8_export.py",              title="Export & Reports",    icon="📥"),
     ]
 )
 

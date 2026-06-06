@@ -18,3 +18,4 @@ starlette>=0.42.0,<0.49.0
 psycopg2-binary
 redis
 lightgbm
+fpdf2
