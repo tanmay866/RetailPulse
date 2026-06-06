@@ -9,11 +9,12 @@ st.set_page_config(
 
 pg = st.navigation(
     [
-        st.Page("pages/1_overview.py",     title="Overview",     icon="📊"),
-        st.Page("pages/2_segmentation.py", title="Segmentation", icon="👥"),
-        st.Page("pages/3_churn.py",        title="Churn",        icon="⚠️"),
-        st.Page("pages/4_forecasting.py",  title="Forecasting",  icon="📈"),
-        st.Page("pages/5_inventory.py",    title="Inventory",    icon="📦"),
+        st.Page("pages/1_overview.py",            title="Overview",            icon="📊"),
+        st.Page("pages/2_segmentation.py",        title="Segmentation",        icon="👥"),
+        st.Page("pages/3_churn.py",               title="Churn",               icon="⚠️"),
+        st.Page("pages/6_customer_analytics.py",  title="Customer Analytics",  icon="🎯"),
+        st.Page("pages/4_forecasting.py",         title="Forecasting",         icon="📈"),
+        st.Page("pages/5_inventory.py",           title="Inventory",           icon="📦"),
     ]
 )
 

@@ -55,5 +55,14 @@ def load_prophet_model():
         return pickle.load(f)
 
 
+@st.cache_data(ttl=3600)
+def load_segmentation_churn_merged() -> pd.DataFrame:
+    rfm   = pd.read_csv(DATA_PROCESSED / "rfm_scores.csv")
+    churn = pd.read_csv(DATA_PROCESSED / "churn_predictions.csv")
+    churn = churn.rename(columns={"Customer_ID": "Customer ID"})
+    merged = rfm.merge(churn, on="Customer ID", how="inner")
+    return merged
+
+
 def figure_path(filename: str) -> Path:
     return FIGURES_DIR / filename
