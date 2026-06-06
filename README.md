@@ -8,9 +8,12 @@ Internship project at Zidio Development.
 ## What This Project Does
 
 - Customer segmentation using RFM scoring and clustering (K-Means, DBSCAN)
-- Churn prediction using classification models
-- Demand forecasting using time series models (Prophet, LSTM)
-- Data validation with Great Expectations
+- Demand forecasting using Prophet + PyTorch Lightning LSTM hybrid
+- Churn prediction using XGBoost tuned with Optuna
+- Inventory optimization (EOQ, safety stock, reorder point)
+- Feature importance analysis and multi-model tuning
+- Data drift detection using Evidently AI
+- Automated model retraining pipeline with Apache Airflow
 - Experiment tracking with MLflow
 
 ---
@@ -20,52 +23,64 @@ Internship project at Zidio Development.
 ```
 RetailPulse/
 ├── data/
-│   ├── raw/                        ← place downloaded CSVs here
-│   ├── interim/                    ← cleaned intermediate files
+│   ├── raw/                             ← place downloaded CSVs here
+│   ├── interim/                         ← cleaned intermediate files
 │   └── processed/
-│       ├── retail_clean.csv        ← 779k cleaned transactions
-│       ├── rfm_scores.csv          ← RFM scores for 5,878 customers
-│       ├── customer_segments.csv   ← K-Means + DBSCAN segment labels
-│       ├── daily_revenue_rolling.csv
-│       └── daily_revenue_ts.csv    ← 709-row feature-engineered daily series
+│       ├── retail_clean.csv             ← 779k cleaned transactions
+│       ├── rfm_scores.csv               ← RFM scores for 5,878 customers
+│       ├── customer_segments.csv        ← K-Means + DBSCAN segment labels
+│       ├── daily_revenue_ts.csv         ← 709-row daily revenue series
+│       ├── churn_predictions.csv        ← per-customer churn probabilities
+│       └── inventory_recommendations.csv
 ├── models/
-│   ├── prophet_model.pkl           ← trained Prophet forecasting model
-│   ├── lstm_forecaster.pt          ← Day 5 raw PyTorch LSTM weights
-│   ├── lstm_scaler.pkl             ← scaler for Day 5 LSTM
-│   ├── lstm_lightning_checkpoint.ckpt  ← best Lightning checkpoint (gitignored)
-│   └── lstm_lightning_scaler.pkl   ← scaler for Lightning LSTM
+│   ├── prophet_model.pkl
+│   ├── hybrid_residual_lstm.ckpt        ← Prophet residual LSTM checkpoint
+│   ├── churn_xgboost.pkl                ← best Optuna-tuned XGBoost churn model
+│   └── baseline_metrics.json           ← gate thresholds for retrain validation
 ├── notebooks/
 │   ├── eda.ipynb
 │   ├── cleaning.ipynb
 │   ├── validation.ipynb
 │   ├── segmentation.ipynb
-│   ├── forecasting.ipynb           ← Prophet + Day 5 LSTM walkthrough
-│   └── lstm_lightning.ipynb        ← Day 6 PyTorch Lightning LSTM walkthrough
-├── reports/
-│   └── figures/
-│       ├── ts_decomposition.png
-│       ├── ts_acf_pacf.png
-│       ├── prophet_forecast.png
-│       ├── prophet_components.png
-│       ├── prophet_changepoints.png
-│       ├── prophet_cv_metrics.png
-│       ├── prophet_tuning.png
-│       ├── forecast_comparison.png
-│       ├── lstm_training_curve.png      ← train vs val loss per epoch
-│       └── lstm_lightning_forecast.png  ← Actual vs Prophet vs LSTM-Lightning
+│   ├── forecasting.ipynb
+│   ├── lstm_lightning.ipynb
+│   ├── churn_prediction.ipynb
+│   ├── inventory_optimization.ipynb
+│   ├── feature_importance.ipynb
+│   └── drift_detection.ipynb
 ├── src/
-│   ├── feature_engineering.py      ← load/clean sales, RFM, rolling stats
-│   ├── segmentation.py             ← K-Means, DBSCAN, evaluation, visualisation
-│   ├── forecasting.py              ← Prophet + raw LSTM, evaluation, MLflow
-│   └── lstm_lightning.py           ← PyTorch Lightning LSTM, DataModule, trainer
+│   ├── feature_engineering.py          ← load/clean sales, RFM, rolling stats
+│   ├── segmentation.py                 ← K-Means, DBSCAN, evaluation
+│   ├── forecasting.py                  ← Prophet training, evaluation, MLflow
+│   ├── lstm_lightning.py               ← PyTorch Lightning LSTM + DataModule
+│   ├── hybrid_forecaster.py            ← Prophet + LSTM residual hybrid
+│   ├── churn.py                        ← XGBoost churn model + Optuna tuning
+│   ├── inventory_optimizer.py          ← EOQ, safety stock, reorder logic
+│   ├── model_tuner.py                  ← multi-model Optuna tuning + comparison
+│   ├── drift_detector.py               ← Evidently drift reports + MLflow logging
+│   └── retrain_pipeline.py             ← drift-triggered retrain + model gate
+├── dags/
+│   └── retailpulse_retrain_dag.py      ← Airflow DAG for scheduled retraining
+├── docker/
+│   ├── Dockerfile.airflow
+│   └── docker-compose-airflow.yml
 ├── tests/
-│   ├── test_forecasting.py         ← 7 pytest unit tests for Day 5 pipeline
-│   └── test_lstm_lightning.py      ← 4 pytest unit tests for Day 6 Lightning LSTM
-├── main.py                         ← segmentation pipeline CLI entry point
-├── prepare_forecast.py             ← time-series data prep pipeline
-├── run_models.py                   ← Prophet + raw LSTM training runner (Day 5)
-├── run_lstm.py                     ← PyTorch Lightning LSTM runner (Day 6)
-├── pyrefly.toml
+│   ├── test_forecasting.py
+│   ├── test_lstm_lightning.py
+│   ├── test_churn.py
+│   └── test_inventory.py
+├── reports/
+│   ├── figures/                        ← model and analysis plots
+│   └── week2_checkpoint.json           ← Week 2 verified metric snapshot
+├── main.py                             ← segmentation pipeline entry point
+├── prepare_forecast.py                 ← time-series data prep
+├── run_hybrid.py                       ← Prophet + LSTM hybrid training
+├── run_churn.py                        ← churn model training
+├── run_inventory.py                    ← inventory optimization
+├── run_model_tuner.py                  ← multi-model Optuna tuning
+├── run_drift.py                        ← drift detection report
+├── run_models.py                       ← Prophet + raw LSTM (baseline)
+├── run_lstm.py                         ← PyTorch Lightning LSTM (baseline)
 ├── requirements.txt
 └── .gitignore
 ```
@@ -74,20 +89,16 @@ RetailPulse/
 
 ## Datasets
 
-Datasets are not included in this repo due to file size.
-Download them from Kaggle and place in `data/raw/`:
+Not included due to file size. Download from Kaggle and place in `data/raw/`:
 
-1. **Online Retail II**
-   Link: https://www.kaggle.com/datasets/mashlyn/online-retail-ii-uci
-   File: `online_retail_II.csv`
+1. **Online Retail II** — `online_retail_II.csv`
+   https://www.kaggle.com/datasets/mashlyn/online-retail-ii-uci
 
-2. **Customer Churn**
-   Link: https://www.kaggle.com/datasets/blastchar/telco-customer-churn
-   File: `online_retail_customer_churn.csv`
+2. **Customer Churn** — `online_retail_customer_churn.csv`
+   https://www.kaggle.com/datasets/blastchar/telco-customer-churn
 
-3. **Retail Store Inventory**
-   Link: https://www.kaggle.com/datasets/anirudhchauhan/retail-store-inventory-forecasting-dataset
-   File: `retail_store_inventory.csv`
+3. **Retail Store Inventory** — `retail_store_inventory.csv`
+   https://www.kaggle.com/datasets/anirudhchauhan/retail-store-inventory-forecasting-dataset
 
 ---
 
@@ -99,37 +110,35 @@ cd RetailPulse
 pip install -r requirements.txt
 ```
 
-**Key dependencies:** pandas, numpy, scikit-learn, matplotlib, seaborn, statsmodels,
-prophet, torch, pytorch-lightning, mlflow, great_expectations, kneed
-
 Download the datasets (see above) and place them in `data/raw/`.
 
 ---
 
 ## How to Run
 
-### Segmentation pipeline
 ```bash
+# Segmentation
 python main.py
-```
 
-### Forecasting — data prep
-```bash
+# Time-series data prep (run once before forecasting)
 python prepare_forecast.py
-```
 
-### Forecasting — Prophet + raw LSTM (Day 5)
-```bash
-python run_models.py
-```
+# Hybrid forecasting (Prophet + LSTM)
+python run_hybrid.py
 
-### Forecasting — PyTorch Lightning LSTM (Day 6)
-```bash
-python run_lstm.py
-```
+# Churn prediction
+python run_churn.py
 
-### Tests
-```bash
+# Inventory optimization
+python run_inventory.py
+
+# Multi-model tuning (Optuna)
+python run_model_tuner.py
+
+# Drift detection
+python run_drift.py
+
+# Tests
 pytest tests/ -v
 ```
 
@@ -143,11 +152,11 @@ pytest tests/ -v
 | Data Cleaning & Feature Engineering | Done |
 | Data Validation (Great Expectations) | Done |
 | Customer Segmentation (K-Means + DBSCAN) | Done |
-| Time-Series Forecasting Prep | Done |
-| Baseline Prophet Model | Done |
-| LSTM Forecaster — PyTorch Lightning | Done |
-| Churn Prediction | Pending |
-
----
-
-
+| Time-Series Forecasting (Prophet + LSTM hybrid) | Done |
+| Churn Prediction (XGBoost + Optuna) | Done |
+| Inventory Optimization (EOQ + safety stock) | Done |
+| Feature Importance & Model Tuning | Done |
+| Drift Detection (Evidently AI) | Done |
+| Automated Retraining Pipeline (Airflow) | Done |
+| Week 2 Checkpoint | Done |
+| Streamlit Dashboard | Pending |

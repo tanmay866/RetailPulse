@@ -25,14 +25,17 @@ data/interim/*.csv
 
 # Models - large binary files
 models/*.pkl
+models/*.pt
 models/*.h5
 models/*.joblib
 models/*.model
 models/*.ckpt
 
-# Reports - generated figures (can be reproduced)
+# Reports - generated outputs (can be reproduced)
 reports/figures/*.png
 reports/figures/*.jpg
+reports/drift/
+reports/*.json
 
 # OS
 .DS_Store
