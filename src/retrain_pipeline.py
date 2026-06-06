@@ -82,8 +82,8 @@ def retrain_forecasting() -> dict:
         mlflow.log_metrics(metrics)
 
     return {
-        "forecast_rmse": float(metrics["rmse"]),
-        "forecast_mae":  float(metrics["mae"]),
+        "forecast_rmse": metrics["rmse"],
+        "forecast_mae":  metrics["mae"],
     }
 
 

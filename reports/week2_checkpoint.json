@@ -1,0 +1,22 @@
+{
+  "forecast_rmse": 19048.6336,
+  "forecast_mae": 10922.6943,
+  "forecast_mape": 30.8926,
+  "churn_auc": 0.9278,
+  "churn_f1": 0.8108,
+  "churn_precision": 0.709,
+  "inventory_stockout_risk_pct": 61.25,
+  "inventory_units_to_order": 931134,
+  "drift_churn_feature_share": 0.2308,
+  "drift_retrain_triggered": false,
+  "mlflow_experiments": [
+    "churn_prediction",
+    "drift_detection",
+    "inventory_optimization",
+    "model_tuning",
+    "retailpulse-forecasting"
+  ],
+  "tests_passed": true,
+  "dag_parse": true,
+  "baseline_metrics_updated": true
+}

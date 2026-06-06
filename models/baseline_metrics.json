@@ -1,4 +1,5 @@
 {
-  "churn_auc": 0.91,
-  "forecast_rmse": 150.0
+  "churn_auc": 0.9278,
+  "forecast_rmse": 19048.6336,
+  "forecast_mae": 10922.6943
 }
