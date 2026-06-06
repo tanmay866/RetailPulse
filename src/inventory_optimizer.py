@@ -52,6 +52,7 @@ class InventoryOptimizer:
 
         self._df: pd.DataFrame | None = None
         self._stats: pd.DataFrame | None = None
+        self._snapshot: pd.DataFrame | None = None
         self._recommendations: pd.DataFrame | None = None
 
     # ------------------------------------------------------------------
@@ -70,6 +71,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def compute_demand_stats(self) -> pd.DataFrame:
+        assert self._df is not None, "Call load() first"
         df = self._df
         grp = df.groupby(["Store ID", "Product ID", "Category", "Region"])
 
@@ -105,6 +107,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def compute_safety_stock(self) -> pd.DataFrame:
+        assert self._stats is not None, "Call compute_demand_stats() first"
         s = self._stats.copy()
         # Safety stock = Z × σ_demand × √(lead_time)
         s["safety_stock"] = (
@@ -118,6 +121,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def compute_reorder_point(self) -> pd.DataFrame:
+        assert self._stats is not None, "Call compute_safety_stock() first"
         s = self._stats.copy()
         s["rop"] = (
             s["mean_daily_demand"] * self.lead_time_days + s["safety_stock"]
@@ -130,6 +134,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def compute_eoq(self) -> pd.DataFrame:
+        assert self._stats is not None, "Call compute_reorder_point() first"
         s = self._stats.copy()
         annual_demand   = s["mean_daily_demand"] * 365
         holding_cost    = self.holding_cost_rate * s["avg_price"]
@@ -148,6 +153,8 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def evaluate_current_stock(self) -> pd.DataFrame:
+        assert self._df is not None, "Call load() first"
+        assert self._stats is not None, "Call compute_eoq() first"
         df = self._df
         latest_date = df["Date"].max()
         df_latest   = df[df["Date"] == latest_date].copy()
@@ -191,6 +198,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def generate_recommendations(self) -> pd.DataFrame:
+        assert self._snapshot is not None, "Call evaluate_current_stock() first"
         snap = self._snapshot.copy()
 
         cols = {
@@ -216,6 +224,7 @@ class InventoryOptimizer:
     # ------------------------------------------------------------------
 
     def log_to_mlflow(self, run_name: str = "inventory_optimizer_v1") -> None:
+        assert self._recommendations is not None, "Call generate_recommendations() first"
         rec = self._recommendations
         total = len(rec)
 
@@ -224,7 +233,7 @@ class InventoryOptimizer:
         pct_optimal   = round((rec["status"] == STATUS_OPTIMAL).sum()   / total * 100, 2)
 
         finite_days = rec["days_of_stock"].replace(np.inf, np.nan)
-        avg_days    = round(float(finite_days.mean()), 2)
+        avg_days    = round(finite_days.mean(), 2)
 
         total_units_to_order = int(rec["units_to_order"].sum())
 
@@ -279,6 +288,7 @@ class InventoryOptimizer:
         self._plot_status_breakdown()
 
     def _plot_stockout_heatmap(self) -> None:
+        assert self._recommendations is not None, "Call generate_recommendations() first"
         rec = self._recommendations
         pivot = (
             rec[rec["status"] == STATUS_STOCKOUT]
@@ -303,6 +313,7 @@ class InventoryOptimizer:
         print("saved inventory_stockout_heatmap.png")
 
     def _plot_eoq_vs_ordered(self) -> None:
+        assert self._snapshot is not None, "Call evaluate_current_stock() first"
         snap = self._snapshot.copy()
         snap = snap[snap["eoq"] > 0]
 
@@ -320,6 +331,7 @@ class InventoryOptimizer:
         print("saved inventory_eoq_vs_ordered.png")
 
     def _plot_safety_stock_dist(self) -> None:
+        assert self._stats is not None, "Call compute_safety_stock() first"
         stats = self._stats.copy()
         categories = stats["Category"].unique()
 
@@ -337,6 +349,7 @@ class InventoryOptimizer:
         print("saved inventory_safety_stock_dist.png")
 
     def _plot_days_of_stock(self) -> None:
+        assert self._recommendations is not None, "Call generate_recommendations() first"
         rec = self._recommendations.copy()
         rec["days_of_stock_plot"] = rec["days_of_stock"].replace(np.inf, np.nan)
 
@@ -361,6 +374,7 @@ class InventoryOptimizer:
         print("saved inventory_days_of_stock.png")
 
     def _plot_status_breakdown(self) -> None:
+        assert self._recommendations is not None, "Call generate_recommendations() first"
         rec = self._recommendations.copy()
         breakdown = (
             rec.groupby(["category", "status"])
@@ -399,4 +413,5 @@ class InventoryOptimizer:
         self.generate_recommendations()
         self.plot_all()
         self.log_to_mlflow()
+        assert self._recommendations is not None
         return self._recommendations
