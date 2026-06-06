@@ -378,13 +378,13 @@ def tune_prophet(train_df, test_df, target='Revenue',
     axes[0].bar(x, results['mae'],  color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
     axes[0].set_xticks(x); axes[0].set_xticklabels(labels, fontsize=9)
     axes[0].set_title('MAE by Config', fontweight='bold')
-    axes[0].set_ylabel('MAE (£)')
+    axes[0].set_ylabel('MAE (₹)')
     axes[0].grid(axis='y', alpha=0.3)
 
     axes[1].bar(x, results['rmse'], color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
     axes[1].set_xticks(x); axes[1].set_xticklabels(labels, fontsize=9)
     axes[1].set_title('RMSE by Config (sorted best→worst)', fontweight='bold')
-    axes[1].set_ylabel('RMSE (£)')
+    axes[1].set_ylabel('RMSE (₹)')
     axes[1].grid(axis='y', alpha=0.3)
 
     plt.suptitle('Prophet Hyperparameter Grid — Test-Set Metrics', fontweight='bold', fontsize=13, y=1.02)
@@ -416,14 +416,14 @@ def prophet_cross_validate(model, initial='450 days', period='30 days', horizon=
                  color='darkorange', linewidth=1.5, marker='o', markersize=3)
     axes[0].set_title('RMSE by Forecast Horizon', fontweight='bold')
     axes[0].set_xlabel('Horizon (days ahead)')
-    axes[0].set_ylabel('RMSE (£)')
+    axes[0].set_ylabel('RMSE (₹)')
     axes[0].grid(alpha=0.3)
 
     axes[1].plot(metrics_df['horizon_days'], metrics_df['mae'],
                  color='steelblue', linewidth=1.5, marker='o', markersize=3)
     axes[1].set_title('MAE by Forecast Horizon', fontweight='bold')
     axes[1].set_xlabel('Horizon (days ahead)')
-    axes[1].set_ylabel('MAE (£)')
+    axes[1].set_ylabel('MAE (₹)')
     axes[1].grid(alpha=0.3)
 
     plt.suptitle('Prophet Cross-Validation — Error by Forecast Horizon', fontweight='bold', fontsize=13, y=1.02)
@@ -459,7 +459,7 @@ def plot_prophet_changepoints(model, df, target='Revenue', save_path='reports/fi
         Line2D([0], [0], color='lightcoral',linestyle='--', label='Weak changepoint'),
     ]
     ax1.legend(handles=handles, fontsize=9)
-    ax1.set_ylabel('Revenue (£)')
+    ax1.set_ylabel('Revenue (₹)')
     ax1.set_title('Revenue with Prophet Changepoints', fontweight='bold')
     ax1.grid(axis='y', alpha=0.3)
 

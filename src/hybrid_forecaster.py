@@ -36,7 +36,7 @@ def plot_residuals(residuals, save_path='reports/figures/hybrid_residuals.png'):
     ax.plot(residuals.index, residuals.values, color='firebrick', linewidth=0.9)
     ax.axhline(0, color='black', linewidth=0.7)
     ax.set_title('Prophet Training Residuals (Actual - yhat)', fontweight='bold')
-    ax.set_ylabel('Residual (£)')
+    ax.set_ylabel('Residual (₹)')
     ax.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     plt.savefig(save_path, dpi=150)

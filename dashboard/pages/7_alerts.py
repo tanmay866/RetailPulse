@@ -55,7 +55,13 @@ MIN_IDX = 30  # need ≥30 rows of history for rolling stats
 # ── Severity styling ──────────────────────────────────────────────────────────
 SEV_COLOR = {"CRITICAL": "#D32F2F", "HIGH": "#E65100", "MEDIUM": "#F57F17", "LOW": "#1565C0"}
 SEV_BG    = {"CRITICAL": "#FFEBEE", "HIGH": "#FFF3E0", "MEDIUM": "#FFFDE7", "LOW": "#E3F2FD"}
-SEV_ICON  = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🔵"}
+def _sev_dot(sev: str) -> str:
+    """Return an inline HTML colored dot for severity (no emoji)."""
+    return (
+        f'<span style="display:inline-block;width:9px;height:9px;'
+        f'border-radius:50%;background:{SEV_COLOR[sev]};'
+        f'vertical-align:middle;margin-right:5px;"></span>'
+    )
 SEV_RANK  = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
 
 
@@ -112,8 +118,8 @@ _RULES = [
         "rule":     "Revenue Crash",
         "check":    lambda m, t: m["zscore"] < -t["z_low"],
         "msg":      lambda m: (
-            f"Daily revenue £{m['revenue']:,.0f} is {m['zscore']:.1f}σ below the "
-            f"30-day mean (£{m['mean_30d']:,.0f}). Investigate demand loss."
+            f"Daily revenue ₹{m['revenue']:,.0f} is {m['zscore']:.1f}σ below the "
+            f"30-day mean (₹{m['mean_30d']:,.0f}). Investigate demand loss."
         ),
     },
     {
@@ -133,7 +139,7 @@ _RULES = [
         "check":    lambda m, t: m["pct_7d"] < -t["rev_drop_high"],
         "msg":      lambda m: (
             f"7-day revenue {m['pct_7d']:+.1f}% vs prior 7 days "
-            f"(£{m['rev_7d_sum']:,.0f} this week)."
+            f"(₹{m['rev_7d_sum']:,.0f} this week)."
         ),
     },
     {
@@ -142,7 +148,7 @@ _RULES = [
         "rule":     "Revenue Spike",
         "check":    lambda m, t: m["zscore"] > t["z_high"],
         "msg":      lambda m: (
-            f"Daily revenue £{m['revenue']:,.0f} is +{m['zscore']:.1f}σ above the "
+            f"Daily revenue ₹{m['revenue']:,.0f} is +{m['zscore']:.1f}σ above the "
             "30-day mean. Verify demand source and stock sufficiency."
         ),
     },
@@ -222,18 +228,18 @@ with st.sidebar:
 
     play_col, step_col = st.columns(2)
     with play_col:
-        play_label = "⏸ Pause" if st.session_state.playing else "▶ Play"
+        play_label = "Pause" if st.session_state.playing else "Play"
         if st.button(play_label, use_container_width=True):
             st.session_state.playing = not st.session_state.playing
             if st.session_state.playing:
                 st.session_state.auto_refresh = True
     with step_col:
-        if st.button("▶| Step", use_container_width=True,
+        if st.button("Step", use_container_width=True,
                      disabled=st.session_state.playing):
             st.session_state.sim_idx = min(st.session_state.sim_idx + 1, MAX_IDX)
             st.rerun()
 
-    if st.button("⟫ Jump to End", use_container_width=True):
+    if st.button("Jump to End", use_container_width=True):
         st.session_state.sim_idx = MAX_IDX
         st.session_state.playing = False
         st.rerun()
@@ -245,7 +251,7 @@ with st.sidebar:
         max_value=MAX_IDX,
         key="sim_idx",
     )
-    st.caption(f"📅 {rolling.iloc[st.session_state.sim_idx]['Date'].date()}")
+    st.caption(f"Sim date: {rolling.iloc[st.session_state.sim_idx]['Date'].date()}")
 
     st.divider()
     st.header("Auto-Refresh")
@@ -284,7 +290,7 @@ with st.sidebar:
     }
 
     st.divider()
-    if st.button("🗑 Clear Alert History", use_container_width=True):
+    if st.button("Clear History", use_container_width=True):
         st.session_state.alert_history = []
         st.session_state.dismissed_ids = set()
         st.rerun()
@@ -309,8 +315,7 @@ for a in active_alerts:
         st.session_state.alert_history.append(a)
         if a["severity"] in ("CRITICAL", "HIGH"):
             st.toast(
-                f"{SEV_ICON[a['severity']]} {a['rule']}: {a['message'][:100]}",
-                icon="⚠️",
+                f"[{a['severity']}] {a['rule']}: {a['message'][:100]}",
             )
 
 crit_n = sum(1 for a in undismissed if a["severity"] == "CRITICAL")
@@ -321,21 +326,31 @@ med_n  = sum(1 for a in undismissed if a["severity"] == "MEDIUM")
 sb1, sb2, sb3, sb4 = st.columns([3, 3, 3, 1])
 
 with sb1:
-    status_badge = "🟢 PLAYING" if st.session_state.playing else "⏸ PAUSED"
-    st.markdown(f"**{status_badge}**  \n📅 Sim date: `{date_str}`")
+    _state_color = "#16A34A" if st.session_state.playing else "#64748B"
+    _state_label = "PLAYING" if st.session_state.playing else "PAUSED"
+    st.markdown(
+        f'<span style="display:inline-flex;align-items:center;gap:6px;">'
+        f'<span style="width:9px;height:9px;border-radius:50%;background:{_state_color};'
+        f'display:inline-block;"></span>'
+        f'<strong>{_state_label}</strong></span><br>'
+        f'<span style="font-size:0.82em;color:#64748B;">Sim date: <code>{date_str}</code></span>',
+        unsafe_allow_html=True,
+    )
 
 with sb2:
     refresh_info = (
-        f"🔄 Auto-refresh: every {sel_interval}"
-        if auto_toggle else "🔄 Auto-refresh: OFF"
+        f"Auto-refresh: every {sel_interval}"
+        if auto_toggle else "Auto-refresh: OFF"
     )
-    st.markdown(f"{refresh_info}  \n🔁 Refreshes: {st.session_state.refresh_count}")
+    st.markdown(f"{refresh_info}  \nRefreshes: {st.session_state.refresh_count}")
 
 with sb3:
-    alert_summary = (
-        f"🔴 **{crit_n}** Critical  🟠 **{high_n}** High  🟡 **{med_n}** Medium"
+    st.markdown(
+        f'<span style="color:#D32F2F;font-weight:700;">{crit_n} Critical</span>'
+        f'&ensp;<span style="color:#E65100;font-weight:700;">{high_n} High</span>'
+        f'&ensp;<span style="color:#F57F17;font-weight:700;">{med_n} Medium</span>',
+        unsafe_allow_html=True,
     )
-    st.markdown(alert_summary)
 
 with sb4:
     st.metric("Frame", f"{idx}/{MAX_IDX}")
@@ -348,8 +363,8 @@ st.subheader("Key Metrics")
 k1, k2, k3, k4 = st.columns(4)
 k1.metric(
     "Today's Revenue",
-    f"£{metrics['revenue']:,.0f}",
-    delta=f"£{metrics['revenue'] - metrics['mean_30d']:+,.0f} vs 30d avg",
+    f"₹{metrics['revenue']:,.0f}",
+    delta=f"₹{metrics['revenue'] - metrics['mean_30d']:+,.0f} vs 30d avg",
 )
 k2.metric(
     "7-Day Trend",
@@ -374,8 +389,8 @@ k4.metric(
 k5, k6, k7, k8 = st.columns(4)
 k5.metric(
     "30-Day Avg Revenue",
-    f"£{metrics['mean_30d']:,.0f}",
-    delta=f"σ = £{metrics['std_30d']:,.0f}",
+    f"₹{metrics['mean_30d']:,.0f}",
+    delta=f"σ = ₹{metrics['std_30d']:,.0f}",
     delta_color="off",
 )
 k6.metric(
@@ -403,9 +418,7 @@ st.divider()
 st.subheader("Active Alerts")
 
 if not undismissed:
-    st.success(
-        "✅ **All systems normal** — no active alerts at the current thresholds."
-    )
+    st.success("**All systems normal** — no active alerts at the current thresholds.")
 else:
     sorted_alerts = sorted(undismissed, key=lambda a: SEV_RANK.get(a["severity"], 99))
     for alert in sorted_alerts:
@@ -420,8 +433,8 @@ else:
                     border-radius:4px;
                     margin-bottom:6px;
                 ">
-                <span style="color:{SEV_COLOR[sev]};font-weight:700;">
-                    {SEV_ICON[sev]}&nbsp;{sev}
+                <span style="color:{SEV_COLOR[sev]};font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:{SEV_COLOR[sev]};display:inline-block;"></span>{sev}
                 </span>
                 &ensp;<strong>{alert['rule']}</strong>
                 &ensp;<span style="color:#666;font-size:0.82em;">({alert['date']})</span>
@@ -431,7 +444,7 @@ else:
             )
         with right:
             st.write("")
-            if st.button("✕", key=f"dismiss_{alert['id']}", help="Dismiss"):
+            if st.button("X", key=f"dismiss_{alert['id']}", help="Dismiss"):
                 st.session_state.dismissed_ids.add(alert["id"])
                 st.rerun()
 
@@ -487,7 +500,7 @@ fig.add_trace(go.Bar(
     name="Daily Revenue",
     marker_color=bar_colors,
     opacity=0.85,
-    hovertemplate="<b>%{x|%Y-%m-%d}</b><br>£%{y:,.0f}<extra></extra>",
+    hovertemplate="<b>%{x|%Y-%m-%d}</b><br>₹%{y:,.0f}<extra></extra>",
 ))
 
 # Rolling means
@@ -512,7 +525,7 @@ if not adf.empty:
             line=dict(color="white", width=1.5),
         ),
         text=[f"z={z:+.2f}" for z in adf["zscore"]],
-        hovertemplate="<b>%{x|%Y-%m-%d}</b><br>£%{y:,.0f}<br>z=%{text}<extra>Anomaly</extra>",
+        hovertemplate="<b>%{x|%Y-%m-%d}</b><br>₹%{y:,.0f}<br>z=%{text}<extra>Anomaly</extra>",
     ))
 
 # Current-frame vertical line — add_vline does internal arithmetic that breaks on
@@ -549,7 +562,7 @@ fig.update_layout(
     height=420,
     hovermode="x unified",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    yaxis_title="Revenue (£)",
+    yaxis_title="Revenue (₹)",
     margin=dict(t=10, b=10),
     bargap=0.15,
 )
@@ -562,7 +575,7 @@ st.subheader("Alert History")
 
 history = st.session_state.alert_history
 if not history:
-    st.info("No alerts have fired yet. Press ▶ Play or step through the simulation.")
+    st.info("No alerts have fired yet. Press Play or step through the simulation.")
 else:
     hist_df = (
         pd.DataFrame(history)
@@ -657,7 +670,7 @@ if st.session_state.auto_refresh:
     cdown_slot  = st.empty()
 
     for remaining in range(secs, 0, -tick):
-        cdown_slot.caption(f"🔄 Next refresh in {remaining}s")
+        cdown_slot.caption(f"Next refresh in {remaining}s")
         time.sleep(tick)
 
     cdown_slot.empty()

@@ -20,10 +20,10 @@ total_orders       = retail["Invoice"].nunique()
 avg_order_value    = retail.groupby("Invoice")["Revenue"].sum().mean()
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Total Revenue",      f"£{total_revenue:,.0f}")
+c1.metric("Total Revenue",      f"₹{total_revenue:,.0f}")
 c2.metric("Unique Customers",   f"{unique_customers:,}")
 c3.metric("Total Orders",       f"{total_orders:,}")
-c4.metric("Avg Order Value",    f"£{avg_order_value:,.2f}")
+c4.metric("Avg Order Value",    f"₹{avg_order_value:,.2f}")
 
 st.divider()
 
@@ -36,7 +36,7 @@ fig = px.line(
     rolling,
     x="Date",
     y=["Revenue", "rolling_7d_mean", "rolling_30d_mean"],
-    labels={"value": "Revenue (£)", "variable": "Series"},
+    labels={"value": "Revenue (₹)", "variable": "Series"},
     color_discrete_map={
         "Revenue":          "#a8c8e8",
         "rolling_7d_mean":  "#2196F3",
@@ -65,7 +65,7 @@ fig2 = px.bar(
     x="Revenue",
     y="Description",
     orientation="h",
-    labels={"Revenue": "Revenue (£)", "Description": "Product"},
+    labels={"Revenue": "Revenue (₹)", "Description": "Product"},
     color="Revenue",
     color_continuous_scale="Blues",
 )

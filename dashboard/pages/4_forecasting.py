@@ -118,11 +118,11 @@ fig.update_layout(
     height=430,
     hovermode="x unified",
     xaxis_title="Date",
-    yaxis_title="Revenue (£)",
+    yaxis_title="Revenue (₹)",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(t=10, b=40, l=10, r=10),
 )
-fig.update_yaxes(tickprefix="£", tickformat=",.0f")
+fig.update_yaxes(tickprefix="₹", tickformat=",.0f")
 st.plotly_chart(fig, use_container_width=True)
 
 
@@ -136,9 +136,9 @@ if demand_shock != 0:
     delta_pct = delta / base_rev * 100 if base_rev else 0
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Baseline Revenue", f"£{base_rev:,.0f}")
-    m2.metric("Scenario Revenue", f"£{scenario_rev:,.0f}", f"£{delta:+,.0f}")
-    m3.metric("Revenue Impact",   f"£{delta:+,.0f}",       f"{delta_pct:+.1f}%")
+    m1.metric("Baseline Revenue", f"₹{base_rev:,.0f}")
+    m2.metric("Scenario Revenue", f"₹{scenario_rev:,.0f}", f"₹{delta:+,.0f}")
+    m3.metric("Revenue Impact",   f"₹{delta:+,.0f}",       f"{delta_pct:+.1f}%")
 
 
 st.divider()
@@ -217,10 +217,10 @@ fig3.update_layout(
     height=340,
     hovermode="x unified",
     xaxis_title="Date",
-    yaxis_title="Revenue (£)",
+    yaxis_title="Revenue (₹)",
     margin=dict(t=10, b=40, l=10, r=10),
 )
-fig3.update_yaxes(tickprefix="£", tickformat=",.0f")
+fig3.update_yaxes(tickprefix="₹", tickformat=",.0f")
 st.plotly_chart(fig3, use_container_width=True)
 
 top10 = cp_df.nlargest(10, "abs_delta")[["date", "delta"]].copy()
@@ -289,7 +289,7 @@ with col_a:
         x=dow_order,
         y=avg_dow.values,
         marker_color="#42A5F5",
-        text=[f"£{v:,.0f}" for v in avg_dow.values],
+        text=[f"₹{v:,.0f}" for v in avg_dow.values],
         textposition="outside",
         textfont=dict(size=10),
     ))
@@ -297,10 +297,10 @@ with col_a:
         title="Avg Daily Revenue by Day of Week",
         height=310,
         showlegend=False,
-        yaxis_title="Avg Revenue (£)",
+        yaxis_title="Avg Revenue (₹)",
         margin=dict(t=40, b=40, l=10, r=10),
     )
-    fig5a.update_yaxes(tickprefix="£", tickformat=",.0f")
+    fig5a.update_yaxes(tickprefix="₹", tickformat=",.0f")
     st.plotly_chart(fig5a, use_container_width=True)
 
 with col_b:
@@ -321,7 +321,7 @@ with col_b:
         x=avg_month["month_name"],
         y=avg_month["Revenue"],
         marker_color="#66BB6A",
-        text=[f"£{v:,.0f}" for v in avg_month["Revenue"]],
+        text=[f"₹{v:,.0f}" for v in avg_month["Revenue"]],
         textposition="outside",
         textfont=dict(size=10),
     ))
@@ -329,8 +329,8 @@ with col_b:
         title="Avg Daily Revenue by Month",
         height=310,
         showlegend=False,
-        yaxis_title="Avg Revenue (£)",
+        yaxis_title="Avg Revenue (₹)",
         margin=dict(t=40, b=40, l=10, r=10),
     )
-    fig5b.update_yaxes(tickprefix="£", tickformat=",.0f")
+    fig5b.update_yaxes(tickprefix="₹", tickformat=",.0f")
     st.plotly_chart(fig5b, use_container_width=True)

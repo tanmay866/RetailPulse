@@ -41,7 +41,7 @@ fig2 = px.scatter(
     y="Monetary",
     color="Business_Label",
     hover_data=["Customer ID", "Frequency"],
-    labels={"Recency": "Recency (days)", "Monetary": "Monetary (£)", "Business_Label": "Segment"},
+    labels={"Recency": "Recency (days)", "Monetary": "Monetary (₹)", "Business_Label": "Segment"},
     color_discrete_sequence=px.colors.qualitative.Set1,
     opacity=0.7,
 )

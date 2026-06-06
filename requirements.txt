@@ -19,3 +19,4 @@ psycopg2-binary
 redis
 lightgbm
 fpdf2
+PyJWT

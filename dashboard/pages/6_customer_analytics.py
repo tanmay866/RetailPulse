@@ -211,7 +211,7 @@ fig_scatter = px.scatter(
     range_color=[0, 1],
     labels={
         "Recency":           "Recency (days since last purchase)",
-        "Monetary":          "Monetary (£ total spend)",
+        "Monetary":          "Monetary (₹ total spend)",
         "churn_probability": "Churn Prob",
         "Frequency":         "Order Count",
     },
@@ -253,7 +253,7 @@ summary["Churn_Rate_%"] = (
 summary = summary.sort_values("Avg_Churn_Prob", ascending=False)
 summary["Avg_Churn_Prob"]  = summary["Avg_Churn_Prob"].map(lambda v: f"{v:.1%}")
 summary["Avg_Recency"]     = summary["Avg_Recency"].round(0).astype(int)
-summary["Avg_Monetary"]    = summary["Avg_Monetary"].map(lambda v: f"£{v:,.0f}")
+summary["Avg_Monetary"]    = summary["Avg_Monetary"].map(lambda v: f"₹{v:,.0f}")
 summary["Avg_Frequency"]   = summary["Avg_Frequency"].round(1)
 
 st.dataframe(
