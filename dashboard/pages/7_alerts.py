@@ -515,11 +515,20 @@ if not adf.empty:
         hovertemplate="<b>%{x|%Y-%m-%d}</b><br>£%{y:,.0f}<br>z=%{text}<extra>Anomaly</extra>",
     ))
 
-# Current-frame vertical line — pass date as ISO string (Plotly 5.x requirement)
-fig.add_vline(
-    x=metrics["date"].isoformat(), line_dash="dash", line_color="#212121", line_width=1.5,
-    annotation_text="NOW", annotation_position="top right",
-    annotation_font_color="#212121",
+# Current-frame vertical line — add_vline does internal arithmetic that breaks on
+# datetime x-values; use add_shape + add_annotation directly instead.
+_now_iso = metrics["date"].isoformat()
+fig.add_shape(
+    type="line", xref="x", yref="paper",
+    x0=_now_iso, x1=_now_iso, y0=0, y1=1,
+    line=dict(dash="dash", color="#212121", width=1.5),
+)
+fig.add_annotation(
+    xref="x", yref="paper",
+    x=_now_iso, y=1.01,
+    text="NOW", showarrow=False,
+    font=dict(color="#212121", size=11),
+    xanchor="left", yanchor="bottom",
 )
 
 # Threshold lines
