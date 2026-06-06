@@ -3,3 +3,5 @@
 {"ts": "2026-06-06T17:22:59Z", "user": "viewer", "action": "logout", "resource": "session", "details": "User logged out"}
 {"ts": "2026-06-06T17:23:14Z", "user": "analyst", "action": "login", "resource": "session", "details": "role=analyst"}
 {"ts": "2026-06-06T17:26:45Z", "user": "admin", "action": "login", "resource": "session", "details": "role=admin"}
+{"ts": "2026-06-06T18:01:31Z", "user": "admin", "action": "login_failed", "resource": "session", "details": "bad credentials"}
+{"ts": "2026-06-06T18:01:36Z", "user": "admin", "action": "login", "resource": "session", "details": "role=admin"}
