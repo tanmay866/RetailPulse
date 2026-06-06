@@ -1,0 +1,19 @@
+FROM apache/airflow:2.9.1
+
+USER airflow
+
+# Install project dependencies from PyPI
+RUN pip install --no-cache-dir \
+    prophet \
+    xgboost \
+    optuna \
+    evidently \
+    pytorch-lightning \
+    kneed \
+    joblib \
+    mlflow
+
+# Install CPU-only torch separately (GPU version from PyPI is 2+ GB)
+RUN pip install --no-cache-dir \
+    torch \
+    --index-url https://download.pytorch.org/whl/cpu
