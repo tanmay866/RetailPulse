@@ -58,7 +58,7 @@ def load_and_preprocess(retail_path: Path = DATA_PROCESSED / "retail_clean.csv")
         pos_rev   = grp.loc[grp["Revenue"] > 0, "Revenue"]
         monetary  = pos_rev.sum()
         recency   = (SNAPSHOT - last_dt).days
-        inter     = inv_dates.diff().dt.days.dropna()
+        inter     = inv_dates.diff().dt.days.dropna()  # type: ignore[union-attr]
         recent90  = grp[grp["InvoiceDate"] >= cutoff90]
         inv_qty   = grp.groupby("Invoice")["Quantity"].sum()
 
@@ -69,15 +69,15 @@ def load_and_preprocess(retail_path: Path = DATA_PROCESSED / "retail_clean.csv")
             "monetary":                monetary,
             "tenure":                  max((last_dt - inv_dates.min()).days, 1),
             "avg_order_value":         monetary / max(freq, 1),
-            "avg_qty_per_order":       float(inv_qty.mean()),
+            "avg_qty_per_order":       inv_qty.mean(),
             "n_unique_products":       grp["StockCode"].nunique(),
             "avg_days_between_orders": float(inter.mean()) if freq > 1 else float(recency),
             "purchase_regularity":     float(inter.std(ddof=0)) if len(inter) > 0 else 0.0,
-            "recent_freq_90d":         int(recent90["Invoice"].nunique()),
+            "recent_freq_90d":         recent90["Invoice"].nunique(),
             "revenue_last_30d": (
                 grp.loc[(grp["InvoiceDate"] >= cutoff30) & (grp["Revenue"] > 0), "Revenue"].sum()
             ),
-            "n_months_active":         int(grp["InvoiceDate"].dt.to_period("M").nunique()),
+            "n_months_active":         grp["InvoiceDate"].dt.to_period("M").nunique(),  # type: ignore[attr-defined]
             "spend_trend_90d": (
                 grp.loc[(grp["InvoiceDate"] >= cutoff90) & (grp["Revenue"] > 0), "Revenue"].sum()
                 / (grp.loc[(grp["InvoiceDate"] < cutoff90) & (grp["Revenue"] > 0), "Revenue"].sum() + 1.0)
@@ -128,7 +128,7 @@ def _tune(X_train: np.ndarray, y_train: np.ndarray, n_trials: int) -> dict:
             m = XGBClassifier(**params)
             m.fit(X_train[tr], y_train[tr])
             scores.append(roc_auc_score(y_train[val], m.predict_proba(X_train[val])[:, 1]))
-        return float(np.mean(scores))
+        return float(np.mean(scores))  # type: ignore[no-matching-overload]
 
     study = optuna.create_study(
         direction="maximize",
@@ -219,7 +219,7 @@ def run(n_trials: int = 50) -> dict:
 
     X_tr, X_te, y_tr, y_te, _, cids_te = train_test_split(
         X.values, y.values, cids.values,
-        test_size=0.20, stratify=y.values, random_state=42,
+        test_size=0.20, stratify=y.values, random_state=42,  # type: ignore[arg-type]
     )
 
     print("Tuning hyperparameters ...")
@@ -243,8 +243,8 @@ def run(n_trials: int = 50) -> dict:
     print("\n--- Evaluation ---")
     for k, v in metrics.items():
         print(f"  {k:<22} {v:.4f}")
-    print(f"  {'cv_auc_mean':<22} {np.mean(cv_scores):.4f}")
-    print(f"  {'cv_auc_std':<22} {np.std(cv_scores):.4f}")
+    print(f"  {'cv_auc_mean':<22} {np.mean(cv_scores):.4f}")  # type: ignore[no-matching-overload]
+    print(f"  {'cv_auc_std':<22} {np.std(cv_scores):.4f}")  # type: ignore[no-matching-overload]
 
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
@@ -270,8 +270,8 @@ def run(n_trials: int = 50) -> dict:
         mlflow.log_params({**best, "cv_folds": 5, "test_size": 0.20, "n_trials": n_trials})
         mlflow.log_metrics({
             **metrics,
-            "cv_auc_mean": float(np.mean(cv_scores)),
-            "cv_auc_std":  float(np.std(cv_scores)),
+            "cv_auc_mean": float(np.mean(cv_scores)),  # type: ignore[no-matching-overload]
+            "cv_auc_std":  float(np.std(cv_scores)),   # type: ignore[no-matching-overload]
         })
         mlflow.log_artifact(str(model_path))
         mlflow.log_artifact(str(pred_path))

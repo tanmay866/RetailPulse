@@ -18,7 +18,7 @@ def log_action(
     resource: str,
     details: str = "",
 ) -> None:
-    ts    = datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    ts    = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
     entry = {"ts": ts, "user": username, "action": action, "resource": resource, "details": details}
 
     # 1. PostgreSQL

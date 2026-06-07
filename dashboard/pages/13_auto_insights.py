@@ -131,6 +131,9 @@ def _generate_insights() -> dict | None:
             response_format={"type": "json_object"},
         )
         raw = response.choices[0].message.content
+        if not raw:
+            st.error("AI returned an empty response.")
+            return None
         return json.loads(raw)
     except json.JSONDecodeError as exc:
         st.error(f"AI returned invalid JSON: {exc}")

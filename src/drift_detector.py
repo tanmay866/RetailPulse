@@ -53,7 +53,7 @@ def _build_features(df: pd.DataFrame, snapshot: pd.Timestamp) -> pd.DataFrame:
         pos_rev   = grp.loc[grp["Revenue"] > 0, "Revenue"]
         monetary  = pos_rev.sum()
         recency   = (snapshot - last_dt).days
-        inter     = inv_dates.diff().dt.days.dropna()
+        inter     = inv_dates.diff().dt.days.dropna()  # type: ignore[union-attr]
         recent90  = grp[grp["InvoiceDate"] >= cutoff90]
         inv_qty   = grp.groupby("Invoice")["Quantity"].sum()
 
@@ -64,15 +64,15 @@ def _build_features(df: pd.DataFrame, snapshot: pd.Timestamp) -> pd.DataFrame:
             "monetary":                monetary,
             "tenure":                  max((last_dt - inv_dates.min()).days, 1),
             "avg_order_value":         monetary / max(freq, 1),
-            "avg_qty_per_order":       float(inv_qty.mean()),
+            "avg_qty_per_order":       inv_qty.mean(),
             "n_unique_products":       grp["StockCode"].nunique(),
             "avg_days_between_orders": float(inter.mean()) if freq > 1 else float(recency),
             "purchase_regularity":     float(inter.std(ddof=0)) if len(inter) > 0 else 0.0,
-            "recent_freq_90d":         int(recent90["Invoice"].nunique()),
+            "recent_freq_90d":         recent90["Invoice"].nunique(),
             "revenue_last_30d": (
                 grp.loc[(grp["InvoiceDate"] >= cutoff30) & (grp["Revenue"] > 0), "Revenue"].sum()
             ),
-            "n_months_active":         int(grp["InvoiceDate"].dt.to_period("M").nunique()),
+            "n_months_active":         grp["InvoiceDate"].dt.to_period("M").nunique(),  # type: ignore[attr-defined]
             "spend_trend_90d": (
                 grp.loc[(grp["InvoiceDate"] >= cutoff90) & (grp["Revenue"] > 0), "Revenue"].sum()
                 / (grp.loc[(grp["InvoiceDate"] < cutoff90) & (grp["Revenue"] > 0), "Revenue"].sum() + 1.0)

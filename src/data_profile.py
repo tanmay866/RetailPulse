@@ -12,8 +12,8 @@ def _profile_df(df, name):
     missing = missing[missing > 0].to_dict()
     return {
         'name':           name,
-        'rows':           int(len(df)),
-        'columns':        int(len(df.columns)),
+        'rows':           len(df),
+        'columns':        len(df.columns),
         'column_names':   list(df.columns),
         'dtypes':         {c: str(t) for c, t in df.dtypes.items()},
         'missing_values': {k: int(v) for k, v in missing.items()},
@@ -33,19 +33,19 @@ def build_profile():
         'date_range': {
             'start':     str(clean['InvoiceDate'].min().date()),
             'end':       str(clean['InvoiceDate'].max().date()),
-            'span_days': int((clean['InvoiceDate'].max() - clean['InvoiceDate'].min()).days),
+            'span_days': (clean['InvoiceDate'].max() - clean['InvoiceDate'].min()).days,
         },
         'revenue_stats': {
-            'min':   round(float(clean['Revenue'].min()), 4),
-            'max':   round(float(clean['Revenue'].max()), 4),
-            'mean':  round(float(clean['Revenue'].mean()), 4),
-            'std':   round(float(clean['Revenue'].std()), 4),
-            'total': round(float(clean['Revenue'].sum()), 2),
+            'min':   round(clean['Revenue'].min(), 4),
+            'max':   round(clean['Revenue'].max(), 4),
+            'mean':  round(clean['Revenue'].mean(), 4),
+            'std':   round(clean['Revenue'].std(), 4),
+            'total': round(clean['Revenue'].sum(), 2),
         },
-        'unique_customers': int(clean['Customer ID'].nunique()),
-        'unique_products':  int(clean['Description'].nunique()),
-        'unique_invoices':  int(clean['Invoice'].nunique()),
-        'countries':        int(clean['Country'].nunique()),
+        'unique_customers': clean['Customer ID'].nunique(),
+        'unique_products':  clean['Description'].nunique(),
+        'unique_invoices':  clean['Invoice'].nunique(),
+        'countries':        clean['Country'].nunique(),
     })
 
     # ---- rfm_scores.csv ----
@@ -61,13 +61,13 @@ def build_profile():
         'date_range': {
             'start':     str(ts.index.min().date()),
             'end':       str(ts.index.max().date()),
-            'span_days': int(len(ts)),
+            'span_days': len(ts),
         },
         'revenue_stats': {
-            'min':  round(float(ts['Revenue'].min()), 2),
-            'max':  round(float(ts['Revenue'].max()), 2),
-            'mean': round(float(ts['Revenue'].mean()), 2),
-            'std':  round(float(ts['Revenue'].std()), 2),
+            'min':  round(ts['Revenue'].min(), 2),
+            'max':  round(ts['Revenue'].max(), 2),
+            'mean': round(ts['Revenue'].mean(), 2),
+            'std':  round(ts['Revenue'].std(), 2),
         },
     })
 

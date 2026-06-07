@@ -17,7 +17,7 @@ def check_churn(prob_threshold: float = 0.7, min_count: int = 10) -> dict:
         pred_col = next((c for c in ["Churn_Predicted", "churn_predicted"] if c in df.columns), None)
 
         if prob_col:
-            high_risk = int((df[prob_col] > prob_threshold).sum())
+            high_risk = (df[prob_col] > prob_threshold).sum()
             rate = df[prob_col].mean() * 100
         elif pred_col:
             high_risk = int(df[pred_col].sum())
@@ -45,7 +45,7 @@ def check_stockout(min_count: int = 5) -> dict:
         if not status_col:
             return {"triggered": False, "reason": "No status column"}
 
-        at_risk = int(df[status_col].str.upper().str.contains("STOCKOUT|RISK", regex=True).sum())
+        at_risk = df[status_col].str.upper().str.contains("STOCKOUT|RISK", regex=True).sum()
         triggered = at_risk >= min_count
         return {
             "triggered": triggered,

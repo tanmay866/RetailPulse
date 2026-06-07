@@ -32,8 +32,8 @@ df.columns = ["Timestamp", "User", "Action", "Resource", "Details"]
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Total Events",   len(df))
 c2.metric("Unique Users",   df["User"].nunique())
-c3.metric("Failed Logins",  int((df["Action"] == "login_failed").sum()))
-c4.metric("Data Downloads", int(df["Action"].str.contains("download").sum()))
+c3.metric("Failed Logins",  (df["Action"] == "login_failed").sum())
+c4.metric("Data Downloads", df["Action"].str.contains("download").sum())
 
 st.divider()
 

@@ -210,19 +210,19 @@ col1.metric(
 col2.metric(
     "Stockout Risk",
     f"{current_stockout:,}",
-    delta=int(current_stockout - baseline_stockout) if params_changed else None,
+    delta=current_stockout - baseline_stockout if params_changed else None,
     delta_color="inverse",
 )
 col3.metric(
     "Optimal",
     f"{len(df_filtered) - current_stockout:,}",
-    delta=int((len(df_filtered) - current_stockout) - (len(df_filtered) - baseline_stockout))
+    delta=(len(df_filtered) - current_stockout) - (len(df_filtered) - baseline_stockout)
     if params_changed else None,
 )
 col4.metric(
     "Units to Order",
     f"{current_units:,}",
-    delta=int(current_units - baseline_units) if params_changed else None,
+    delta=current_units - baseline_units if params_changed else None,
     delta_color="inverse",
 )
 col5.metric(
@@ -258,9 +258,9 @@ if queue.empty:
 else:
     urgency_counts = queue["urgency"].value_counts()
     uc1, uc2, uc3 = st.columns(3)
-    uc1.metric("Critical (<1d)", int(urgency_counts.get(URGENCY_CRITICAL, 0)))
-    uc2.metric("High (1–3d)",    int(urgency_counts.get(URGENCY_HIGH, 0)))
-    uc3.metric("Medium (3–7d)",  int(urgency_counts.get(URGENCY_MEDIUM, 0)))
+    uc1.metric("Critical (<1d)", urgency_counts.get(URGENCY_CRITICAL, 0))
+    uc2.metric("High (1–3d)",    urgency_counts.get(URGENCY_HIGH, 0))
+    uc3.metric("Medium (3–7d)",  urgency_counts.get(URGENCY_MEDIUM, 0))
 
     def _row_color(urgency: str) -> str:
         colors = {
@@ -476,15 +476,15 @@ if params_changed:
     comparison = pd.DataFrame({
         "Metric": ["Stockout Records", "Optimal Records", "Total Units to Order", "Avg Days of Stock"],
         "Baseline": [
-            int((baseline_mask["status"] == STATUS_STOCKOUT).sum()),
-            int((baseline_mask["status"] == STATUS_OPTIMAL).sum()),
-            int(baseline_mask["units_to_order"].sum()),
+            (baseline_mask["status"] == STATUS_STOCKOUT).sum(),
+            (baseline_mask["status"] == STATUS_OPTIMAL).sum(),
+            baseline_mask["units_to_order"].sum(),
             round(baseline_mask["days_of_stock"].replace(np.inf, np.nan).mean(), 1),
         ],
         "What-If": [
-            int(current_stockout),
-            int(len(df_filtered) - current_stockout),
-            int(current_units),
+            current_stockout,
+            len(df_filtered) - current_stockout,
+            current_units,
             round(current_avg_days, 1),
         ],
     })

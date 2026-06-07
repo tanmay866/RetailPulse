@@ -36,7 +36,7 @@ TIER_COLORS = {
 
 # ── KPI row ────────────────────────────────────────────────────────────────────
 total_customers = len(df)
-high_risk       = int((df["churn_probability"] >= 0.70).sum())
+high_risk       = (df["churn_probability"] >= 0.70).sum()
 avg_prob        = df["churn_probability"].mean()
 top_risk_seg    = df.groupby("Segment")["churn_probability"].mean().idxmax()
 

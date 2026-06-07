@@ -103,7 +103,7 @@ def build_context() -> str:
         if pred_col:
             total = len(churn)
             rate = churn[pred_col].mean() * 100
-            high_risk = int((churn[prob_col] > 0.7).sum()) if prob_col else int(churn[pred_col].sum())
+            high_risk = (churn[prob_col] > 0.7).sum() if prob_col else churn[pred_col].sum()
             lines = [
                 f"Total Analyzed: {total:,}",
                 f"Predicted Churn Rate: {rate:.1f}%",

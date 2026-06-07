@@ -27,8 +27,8 @@ class RetailDataset(Dataset):
     def __len__(self):
         return len(self.y)
 
-    def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+    def __getitem__(self, index):
+        return self.X[index], self.y[index]
 
 
 class RetailDataModule(pl.LightningDataModule):
@@ -44,7 +44,7 @@ class RetailDataModule(pl.LightningDataModule):
         self.scaler = MinMaxScaler()
 
     def setup(self, stage=None):
-        values = self.series.values.reshape(-1, 1)
+        values = self.series.to_numpy().reshape(-1, 1)
         scaled = self.scaler.fit_transform(values).flatten()
 
         split = int(len(scaled) * (1 - self.val_split))
@@ -96,7 +96,7 @@ class LSTMLightning(pl.LightningModule):
         self.log('val_loss', loss, on_epoch=True, on_step=False, prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)  # type: ignore[attr-defined]
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode='min', factor=0.5, patience=5
         )
@@ -174,7 +174,7 @@ def forecast_lstm_lightning(
 ) -> np.ndarray:
     """Autoregressive multi-step forecast. Returns predictions in original scale."""
     model.eval()
-    scaled = scaler.transform(seed_series.values.reshape(-1, 1)).flatten()
+    scaled = scaler.transform(seed_series.to_numpy().reshape(-1, 1)).flatten()
     window = list(scaled[-seq_len:])
     preds_scaled = []
 

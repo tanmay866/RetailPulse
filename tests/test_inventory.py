@@ -57,8 +57,9 @@ def test_safety_stock_formula():
     opt.compute_demand_stats()
     opt.compute_safety_stock()
 
+    assert opt._stats is not None
     z = norm.ppf(0.95)
-    std = float(df["Units Sold"].std())
+    std = df["Units Sold"].std()
     expected = round(z * std * np.sqrt(7), 2)
     actual   = float(opt._stats["safety_stock"].iloc[0])
     assert abs(actual - expected) < 0.01, f"Expected {expected}, got {actual}"
@@ -75,6 +76,7 @@ def test_reorder_point_formula():
     opt.compute_safety_stock()
     opt.compute_reorder_point()
 
+    assert opt._stats is not None
     s = opt._stats.iloc[0]
     expected = round(s["mean_daily_demand"] * 7 + s["safety_stock"], 2)
     actual   = round(float(s["rop"]), 2)
@@ -93,6 +95,7 @@ def test_eoq_formula():
     opt.compute_reorder_point()
     opt.compute_eoq()
 
+    assert opt._stats is not None
     mean_demand   = float(opt._stats["mean_daily_demand"].iloc[0])
     annual_demand = mean_demand * 365
     holding_cost  = 0.25 * 10.0
@@ -115,6 +118,7 @@ def test_status_stockout():
     opt.evaluate_current_stock()
     opt.generate_recommendations()
 
+    assert opt._recommendations is not None
     status = opt._recommendations["status"].iloc[0]
     assert status == STATUS_STOCKOUT, f"Expected STOCKOUT_RISK, got {status}"
 
@@ -133,6 +137,7 @@ def test_status_overstock():
     opt.evaluate_current_stock()
     opt.generate_recommendations()
 
+    assert opt._recommendations is not None
     status = opt._recommendations["status"].iloc[0]
     assert status == STATUS_OVERSTOCK, f"Expected OVERSTOCK, got {status}"
 
@@ -151,6 +156,7 @@ def test_zero_demand_no_error():
     opt.evaluate_current_stock()
     opt.generate_recommendations()
 
+    assert opt._recommendations is not None
     days = opt._recommendations["days_of_stock"].iloc[0]
     assert days == np.inf
 
@@ -164,6 +170,7 @@ def test_negative_forecast_clipped():
     opt = _optimizer_from_df(df)
     opt.compute_demand_stats()
 
+    assert opt._stats is not None
     mean = float(opt._stats["mean_daily_demand"].iloc[0])
     assert mean == 0.0, f"Negative forecast should clip to 0, got {mean}"
 

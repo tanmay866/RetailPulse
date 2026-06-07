@@ -45,7 +45,7 @@ def get(key: str) -> Any | None:
         return None
     try:
         raw = r.get(key)
-        return pickle.loads(raw) if raw is not None else None
+        return pickle.loads(raw) if isinstance(raw, bytes) else None
     except Exception as exc:
         log.warning("Redis GET failed [%s]: %s", key, exc)
         return None

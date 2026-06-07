@@ -14,6 +14,7 @@ from __future__ import annotations
 import sys
 import time
 from pathlib import Path
+from typing import Callable, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 
@@ -72,7 +73,7 @@ def _precompute_rfm_churn() -> dict:
     champion_ids = set(rfm.loc[rfm["Segment"] == "Champions", "Customer ID"])
     prob_map     = churn.set_index("Customer_ID")["churn_probability"].to_dict()
     champ_at_risk = sum(1 for cid in champion_ids if prob_map.get(cid, 0) > 0.70)
-    high_churn_ct = int((churn["churn_probability"] > 0.80).sum())
+    high_churn_ct = (churn["churn_probability"] > 0.80).sum()
     return {"champ_at_risk": champ_at_risk, "high_churn_ct": high_churn_ct}
 
 
@@ -91,8 +92,8 @@ def compute_metrics(idx: int) -> dict:
     rev_prev = float(rolling.iloc[hi : lo]["Revenue"].sum())
     pct_7d   = (rev_7d / max(rev_prev, 1) - 1) * 100
 
-    stockout_n   = int((inv["status"] == "STOCKOUT_RISK").sum())
-    critical_n   = int((inv["days_of_stock"] < 1).sum())
+    stockout_n   = (inv["status"] == "STOCKOUT_RISK").sum()
+    critical_n   = (inv["days_of_stock"] < 1).sum()
     stockout_pct = stockout_n / len(inv) * 100
 
     return {
@@ -110,8 +111,16 @@ def compute_metrics(idx: int) -> dict:
     }
 
 
+class _RuleDef(TypedDict):
+    id_key: str
+    severity: str
+    rule: str
+    check: Callable[[dict, dict], bool]
+    msg: Callable[[dict], str]
+
+
 # ── Alert rules ───────────────────────────────────────────────────────────────
-_RULES = [
+_RULES: list[_RuleDef] = [
     {
         "id_key":   "rev_crash",
         "severity": "CRITICAL",

@@ -147,7 +147,11 @@ def _generate_insights() -> dict | None:
             temperature=0.3,
             response_format={"type": "json_object"},
         )
-        return json.loads(response.choices[0].message.content)
+        raw = response.choices[0].message.content
+        if not raw:
+            st.error("AI returned an empty response.")
+            return None
+        return json.loads(raw)
     except json.JSONDecodeError as exc:
         st.error(f"AI returned invalid JSON: {exc}")
         return None
@@ -251,7 +255,7 @@ with tab_chat:
             placeholder = st.empty()
             full_response = ""
             try:
-                stream = client.chat.completions.create(
+                stream = client.chat.completions.create(  # type: ignore[no-matching-overload]
                     model="llama-3.3-70b-versatile",
                     messages=api_messages,
                     max_tokens=1500,

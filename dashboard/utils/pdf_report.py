@@ -13,7 +13,7 @@ except ImportError:
     FPDF = object  # type: ignore[assignment,misc]
 
 
-class _PDF(FPDF):
+class _PDF(FPDF):  # type: ignore[misc]
     _BLUE  = (30, 136, 229)
     _DARK  = (33,  33,  33)
     _GRAY  = (110, 110, 110)

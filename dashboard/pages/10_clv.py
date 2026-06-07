@@ -73,7 +73,7 @@ if clv_seg_sel != "All":
 # ── KPI strip ─────────────────────────────────────────────────────────────────
 total_clv    = repeat["clv_12m"].sum()
 avg_clv      = repeat["clv_12m"].mean()
-high_val_n   = int((repeat["clv_segment"] == "High Value").sum())
+high_val_n   = (repeat["clv_segment"] == "High Value").sum()
 avg_alive    = clv["prob_alive"].mean()
 
 k1, k2, k3, k4 = st.columns(4)

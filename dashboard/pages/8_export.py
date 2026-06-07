@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Callable, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 
@@ -28,6 +29,14 @@ from utils.pdf_report import (
     build_inventory_pdf,
     build_overview_pdf,
 )
+
+
+class _ReportDef(TypedDict):
+    title: str
+    desc: str
+    bullets: list[str]
+    fn: Callable[[], bytes]
+    fname: str
 
 ROOT        = Path(__file__).resolve().parents[2]
 FIGURES_DIR = ROOT / "reports" / "figures"
@@ -179,7 +188,7 @@ with tab_pdf:
         )
         st.stop()
 
-    _REPORTS = [
+    _REPORTS: list[_ReportDef] = [
         {
             "title":   "Business Overview",
             "desc":    "Revenue KPIs, monthly trend, top 10 products, geographic breakdown.",

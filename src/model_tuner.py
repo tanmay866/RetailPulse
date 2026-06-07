@@ -43,7 +43,7 @@ def _evaluate(model, X_test: np.ndarray, y_test: np.ndarray) -> dict:
         "f1":              float(f1_score(y_test, y_pred, zero_division=0)),
         "precision":       float(precision_score(y_test, y_pred, zero_division=0)),
         "recall":          float(recall_score(y_test, y_pred, zero_division=0)),
-        "precision_top20": float(precision_at_top_k(y_test, y_prob, k=0.20)),
+        "precision_top20": precision_at_top_k(y_test, y_prob, k=0.20),
     }
 
 
@@ -74,7 +74,7 @@ def compute_feature_importance(
         model, X_test_df.values, y_test,
         n_repeats=5, random_state=42, scoring="roc_auc",
     )
-    scores["permutation"] = np.maximum(perm.importances_mean, 0.0)
+    scores["permutation"] = np.maximum(perm.importances_mean, 0.0)  # type: ignore[attr-defined]
 
     scores["mutual_info"] = mutual_info_classif(
         X_train_df.values, y_train, random_state=42
@@ -146,7 +146,7 @@ def feature_selection_experiment(
             m = XGBClassifier(**base_params, tree_method="hist", random_state=42, n_jobs=-1, verbosity=0)
             m.fit(X_tr_k[tr], y_tr[tr])
             cv_aucs.append(roc_auc_score(y_tr[val], m.predict_proba(X_tr_k[val])[:, 1]))
-        auc = float(np.mean(cv_aucs))
+        auc = float(np.mean(cv_aucs))  # type: ignore[no-matching-overload]
         results[k] = auc
 
         with mlflow.start_run(run_name=f"xgb_top{k}_features"):
@@ -200,7 +200,7 @@ def _tune_xgboost(X_tr: np.ndarray, y_tr: np.ndarray, n_trials: int) -> tuple[di
             m = XGBClassifier(**params)
             m.fit(X_tr[tr], y_tr[tr])
             cv_aucs.append(roc_auc_score(y_tr[val], m.predict_proba(X_tr[val])[:, 1]))
-        return float(np.mean(cv_aucs))
+        return float(np.mean(cv_aucs))  # type: ignore[no-matching-overload]
 
     study = optuna.create_study(
         direction="maximize",
@@ -236,7 +236,7 @@ def _tune_lgbm(X_tr: np.ndarray, y_tr: np.ndarray, n_trials: int) -> tuple[dict,
             m = lgb.LGBMClassifier(**params)
             m.fit(X_tr[tr], y_tr[tr])
             cv_aucs.append(roc_auc_score(y_tr[val], m.predict_proba(X_tr[val])[:, 1]))
-        return float(np.mean(cv_aucs))
+        return float(np.mean(cv_aucs))  # type: ignore[no-matching-overload]
 
     study = optuna.create_study(
         direction="maximize",
@@ -264,10 +264,10 @@ def _tune_rf(X_tr: np.ndarray, y_tr: np.ndarray, n_trials: int) -> tuple[dict, f
         }
         cv_aucs = []
         for tr, val in cv.split(X_tr, y_tr):
-            m = RandomForestClassifier(**params)
+            m = RandomForestClassifier(**params)  # type: ignore[arg-type]
             m.fit(X_tr[tr], y_tr[tr])
             cv_aucs.append(roc_auc_score(y_tr[val], m.predict_proba(X_tr[val])[:, 1]))
-        return float(np.mean(cv_aucs))
+        return float(np.mean(cv_aucs))  # type: ignore[no-matching-overload]
 
     study = optuna.create_study(
         direction="maximize",
@@ -316,7 +316,7 @@ def run(n_trials: int = 75) -> dict:
 
     X_tr, X_te, y_tr, y_te, _, _ = train_test_split(
         X.values, y.values, cids.values,
-        test_size=0.20, stratify=y.values, random_state=42,
+        test_size=0.20, stratify=y.values, random_state=42,  # type: ignore[arg-type]
     )
 
     X_tr_df = pd.DataFrame(X_tr, columns=feature_names)

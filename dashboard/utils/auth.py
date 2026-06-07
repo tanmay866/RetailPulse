@@ -102,11 +102,12 @@ def authenticate(username: str, password: str) -> str | None:
     """Return a signed JWT string on success, None on bad credentials."""
     user = _lookup_user(username.strip().lower())
     if user and user["hash"] == _sha(password):
+        now = datetime.datetime.now(datetime.timezone.utc)
         payload = {
             "sub":  username.strip().lower(),
             "role": user["role"],
-            "iat":  datetime.datetime.utcnow(),
-            "exp":  datetime.datetime.utcnow() + _TTL,
+            "iat":  now,
+            "exp":  now + _TTL,
         }
         return jwt.encode(payload, _SECRET, algorithm=_ALG)
     return None
@@ -187,7 +188,8 @@ def show_login_form() -> None:
                 st.session_state["_jwt"] = token
                 _set_cookie(token)  # persist in browser; survives page refresh
                 payload = verify_token(token)
-                log_action(payload["sub"], "login", "session", f"role={payload['role']}")
+                if payload:
+                    log_action(payload["sub"], "login", "session", f"role={payload['role']}")
                 st.rerun()
             else:
                 log_action(username or "unknown", "login_failed", "session", "bad credentials")

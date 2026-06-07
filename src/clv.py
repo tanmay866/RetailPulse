@@ -164,13 +164,11 @@ def run() -> None:
             "repeat_buyers":     len(repeat),
         })
         mlflow.log_metrics({
-            "mean_clv_12m":         float(repeat["clv_12m"].mean()),
-            "median_clv_12m":       float(repeat["clv_12m"].median()),
-            "total_projected_clv":  float(repeat["clv_12m"].sum()),
-            "mean_prob_alive":      float(predictions["prob_alive"].mean()),
-            "pct_high_value":       float(
-                (predictions["clv_segment"] == "High Value").mean()
-            ),
+            "mean_clv_12m":         repeat["clv_12m"].mean(),
+            "median_clv_12m":       repeat["clv_12m"].median(),
+            "total_projected_clv":  repeat["clv_12m"].sum(),
+            "mean_prob_alive":      predictions["prob_alive"].mean(),
+            "pct_high_value":       (predictions["clv_segment"] == "High Value").mean(),
         })
         mlflow.log_artifact(str(out_path))
 

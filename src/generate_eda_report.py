@@ -45,14 +45,14 @@ def generate_summary_json():
     clean['Revenue']     = clean['Quantity'] * clean['Price']
 
     summary = {
-        'cleaned_rows':      int(len(clean)),
+        'cleaned_rows':      len(clean),
         'date_range': {
             'start': str(clean['InvoiceDate'].min().date()),
             'end':   str(clean['InvoiceDate'].max().date()),
         },
         'total_revenue_gbp': round(float(clean['Revenue'].sum()), 2),
-        'unique_customers':  int(clean['Customer ID'].nunique()),
-        'unique_products':   int(clean['Description'].nunique()),
+        'unique_customers':  clean['Customer ID'].nunique(),
+        'unique_products':   clean['Description'].nunique(),
         'rfm_segment_counts': (
             rfm['Segment'].value_counts().to_dict()
             if 'Segment' in rfm.columns else {}
