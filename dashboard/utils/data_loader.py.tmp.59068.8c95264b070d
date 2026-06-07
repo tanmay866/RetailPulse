@@ -184,7 +184,6 @@ def load_daily_revenue_ts() -> pd.DataFrame:
     return df
 
 
-@st.cache_data(ttl=3600)
 def load_inventory_recommendations() -> pd.DataFrame:
     return _load(
         "rp:inventory_recommendations",
@@ -198,7 +197,6 @@ def load_prophet_model():
         return pickle.load(f)
 
 
-@st.cache_data(ttl=3600)
 def load_segmentation_churn_merged() -> pd.DataFrame:
     rfm   = load_rfm_scores()
     churn = load_churn_predictions()
@@ -206,7 +204,6 @@ def load_segmentation_churn_merged() -> pd.DataFrame:
     return rfm.merge(churn, on="Customer ID", how="inner")
 
 
-@st.cache_data(ttl=3600)
 def load_clv_predictions() -> pd.DataFrame:
     return _load(
         "rp:clv_predictions",

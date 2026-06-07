@@ -20,6 +20,8 @@ st.set_page_config(
 apply_theme()
 
 # ── Auth gate — show login form and halt if not authenticated ─────────────────
+# get_current_user() reads st.context.cookies (synchronous, Streamlit 1.37+)
+# on the first render after a browser refresh, so no async workaround needed.
 user = get_current_user()
 if user is None:
     show_login_form()

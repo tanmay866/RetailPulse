@@ -206,7 +206,6 @@ def load_segmentation_churn_merged() -> pd.DataFrame:
     return rfm.merge(churn, on="Customer ID", how="inner")
 
 
-@st.cache_data(ttl=3600)
 def load_clv_predictions() -> pd.DataFrame:
     return _load(
         "rp:clv_predictions",

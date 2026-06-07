@@ -5,30 +5,16 @@ import datetime
 import hashlib
 import os
 
+import extra_streamlit_components as stx
 import jwt
 import streamlit as st
-import streamlit.components.v1 as _components
 
 _COOKIE_NAME = "rp_jwt"
-_COOKIE_TTL  = 28800  # 8 hours in seconds
 
 
-def _set_cookie(value: str) -> None:
-    """Write the JWT to a browser cookie via a zero-height JavaScript iframe."""
-    _components.html(
-        f"<script>document.cookie='{_COOKIE_NAME}={value};"
-        f"max-age={_COOKIE_TTL};path=/;SameSite=Lax';</script>",
-        height=0,
-    )
-
-
-def _delete_cookie() -> None:
-    """Expire the JWT cookie via a zero-height JavaScript iframe."""
-    _components.html(
-        f"<script>document.cookie='{_COOKIE_NAME}=;"
-        f"max-age=0;path=/;SameSite=Lax';</script>",
-        height=0,
-    )
+def _get_cookie_manager() -> stx.CookieManager:
+    """Return the singleton CookieManager (renders a hidden browser component)."""
+    return stx.CookieManager(key="rp_cookie_manager")
 
 
 _SECRET = os.environ.get("RETAILPULSE_SECRET", "rp-dev-secret-change-in-prod")
@@ -121,26 +107,13 @@ def verify_token(token: str) -> dict | None:
 
 
 def get_current_user() -> dict | None:
-    """Return {username, role} from session state (or browser cookie on refresh)."""
+    """Return {username, role} from st.session_state, or None."""
     token = st.session_state.get("_jwt")
-
-    # On page refresh session_state is empty; restore from the browser cookie.
-    # st.context.cookies is synchronous (Streamlit 1.37+) — no timing issues.
-    if not token:
-        try:
-            token = st.context.cookies.get(_COOKIE_NAME)
-            if token:
-                st.session_state["_jwt"] = token
-        except Exception:
-            pass
-
     if not token:
         return None
-
     payload = verify_token(token)
     if payload is None:
         st.session_state.pop("_jwt", None)
-        _delete_cookie()
         return None
     return {"username": payload["sub"], "role": payload["role"]}
 
@@ -162,7 +135,11 @@ def logout(username: str) -> None:
     from utils.audit_log import log_action
     log_action(username, "logout", "session", "User logged out")
     st.session_state.pop("_jwt", None)
-    _delete_cookie()
+    st.session_state.pop("rp_cookie_ready", None)  # re-arm init guard on next load
+    try:
+        _get_cookie_manager().delete(_COOKIE_NAME)
+    except Exception:
+        pass
 
 
 def show_login_form() -> None:
@@ -185,7 +162,15 @@ def show_login_form() -> None:
             token = authenticate(username, password)
             if token:
                 st.session_state["_jwt"] = token
-                _set_cookie(token)  # persist in browser; survives page refresh
+                # Persist in browser cookie so refresh doesn't log the user out
+                try:
+                    _get_cookie_manager().set(
+                        _COOKIE_NAME,
+                        token,
+                        expires_at=datetime.datetime.now() + _TTL,
+                    )
+                except Exception:
+                    pass
                 payload = verify_token(token)
                 log_action(payload["sub"], "login", "session", f"role={payload['role']}")
                 st.rerun()

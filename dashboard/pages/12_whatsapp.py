@@ -4,9 +4,11 @@ from __future__ import annotations
 import datetime
 import os
 
+import pandas as pd
 import streamlit as st
 
 from utils.auth import require_auth
+from utils.db import get_conn, execute as db_execute
 from utils.alert_engine import (
     check_churn,
     check_stockout,
@@ -16,15 +18,95 @@ from utils.alert_engine import (
     send_email,
 )
 
+
+# ── DB helpers ────────────────────────────────────────────────────────────────
+
+def _ensure_table() -> None:
+    """Create email_history table if it doesn't exist yet."""
+    db_execute("""
+        CREATE TABLE IF NOT EXISTS email_history (
+            id              SERIAL PRIMARY KEY,
+            sent_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            sent_by         TEXT NOT NULL,
+            recipient       TEXT NOT NULL,
+            subject         TEXT NOT NULL,
+            churn_high_risk INTEGER,
+            stockout_skus   INTEGER,
+            revenue_change  TEXT,
+            status          TEXT NOT NULL,
+            error_msg       TEXT
+        )
+    """)
+
+
+def _save_email(
+    sent_by: str,
+    recipient: str,
+    subject: str,
+    churn_high_risk,
+    stockout_skus,
+    revenue_change: str,
+    status: str,
+    error_msg: str = "",
+) -> None:
+    with get_conn() as conn:
+        if conn is None:
+            return
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO email_history
+                   (sent_by, recipient, subject, churn_high_risk,
+                    stockout_skus, revenue_change, status, error_msg)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (sent_by, recipient, subject,
+                 int(churn_high_risk) if str(churn_high_risk).isdigit() else None,
+                 int(stockout_skus)   if str(stockout_skus).isdigit()   else None,
+                 revenue_change, status, error_msg),
+            )
+
+
+def _load_history(limit: int = 100) -> pd.DataFrame:
+    with get_conn() as conn:
+        if conn is None:
+            return pd.DataFrame()
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT sent_at, sent_by, recipient, subject,
+                          churn_high_risk, stockout_skus,
+                          revenue_change, status, error_msg
+                   FROM email_history
+                   ORDER BY sent_at DESC
+                   LIMIT %s""",
+                (limit,),
+            )
+            cols = [d[0] for d in cur.description]
+            rows = cur.fetchall()
+    if not rows:
+        return pd.DataFrame()
+    df = pd.DataFrame(rows, columns=cols)
+    df["sent_at"] = pd.to_datetime(df["sent_at"]).dt.strftime("%d %b %Y %H:%M")
+    df = df.rename(columns={
+        "sent_at":         "Time",
+        "sent_by":         "Sent By",
+        "recipient":       "Recipient",
+        "subject":         "Subject",
+        "churn_high_risk": "Churn High-Risk",
+        "stockout_skus":   "Stockout SKUs",
+        "revenue_change":  "Revenue Change",
+        "status":          "Status",
+        "error_msg":       "Error",
+    })
+    df = df.drop(columns=["Error"], errors="ignore") if df.get("Error", pd.Series()).eq("").all() else df
+    return df
+
 # ── Auth (admin only) ─────────────────────────────────────────────────────────
 user = require_auth()
 
 st.title(":material/mark_email_unread: Email Alerts")
 st.caption("Send automated retail health alerts to your inbox via Gmail")
 
-# ── Session state ─────────────────────────────────────────────────────────────
-if "alert_history" not in st.session_state:
-    st.session_state.alert_history: list[dict] = []
+# Ensure the table exists (idempotent)
+_ensure_table()
 
 # ── Sidebar — Gmail setup ─────────────────────────────────────────────────────
 with st.sidebar:
@@ -202,28 +284,37 @@ with col_a:
                                           subject, plain_preview, html_body)
             if ok:
                 st.success(f"Email sent to {receiver}")
-                st.session_state.alert_history.append({
-                    "Time": datetime.datetime.now().strftime("%d %b %Y %H:%M"),
-                    "Subject": subject,
-                    "Churn High-Risk": churn_result.get("high_risk", "N/A"),
-                    "Stockout SKUs": stockout_result.get("at_risk", "N/A"),
-                    "Revenue Change": f"{chg:+.1f}%" if chg is not None else "N/A",
-                    "Status": "✅ Sent",
-                })
+                _save_email(
+                    sent_by        = user["username"],
+                    recipient      = receiver,
+                    subject        = subject,
+                    churn_high_risk= churn_result.get("high_risk", ""),
+                    stockout_skus  = stockout_result.get("at_risk", ""),
+                    revenue_change = f"{chg:+.1f}%" if chg is not None else "N/A",
+                    status         = "Sent",
+                )
             else:
                 st.error(f"Failed: {resp_msg}")
-                st.session_state.alert_history.append({
-                    "Time": datetime.datetime.now().strftime("%d %b %Y %H:%M"),
-                    "Subject": subject,
-                    "Status": f"❌ {resp_msg}",
-                })
+                _save_email(
+                    sent_by        = user["username"],
+                    recipient      = receiver,
+                    subject        = subject,
+                    churn_high_risk= "",
+                    stockout_skus  = "",
+                    revenue_change = "N/A",
+                    status         = "Failed",
+                    error_msg      = resp_msg,
+                )
 
 with col_b:
     if st.button("Refresh Data", use_container_width=True):
         st.rerun()
 
 # ── Alert history ─────────────────────────────────────────────────────────────
-if st.session_state.alert_history:
-    st.divider()
-    st.subheader("Sent History (This Session)")
-    st.dataframe(st.session_state.alert_history, use_container_width=True, hide_index=True)
+st.divider()
+st.subheader("Sent History")
+history_df = _load_history()
+if history_df.empty:
+    st.info("No emails sent yet.")
+else:
+    st.dataframe(history_df, use_container_width=True, hide_index=True)

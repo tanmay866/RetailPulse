@@ -185,7 +185,15 @@ def show_login_form() -> None:
             token = authenticate(username, password)
             if token:
                 st.session_state["_jwt"] = token
-                _set_cookie(token)  # persist in browser; survives page refresh
+                # Persist in browser cookie so refresh doesn't log the user out
+                try:
+                    _get_cookie_manager().set(
+                        _COOKIE_NAME,
+                        token,
+                        expires_at=datetime.datetime.now() + _TTL,
+                    )
+                except Exception:
+                    pass
                 payload = verify_token(token)
                 log_action(payload["sub"], "login", "session", f"role={payload['role']}")
                 st.rerun()
