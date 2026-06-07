@@ -4,7 +4,6 @@ import os
 
 
 # -- data loading & cleaning -------------------------------------------------
-
 def load_sales(path):
     df = pd.read_csv(path, encoding='utf-8', low_memory=False)
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'])
@@ -31,7 +30,6 @@ def clean_sales(df):
 
 
 # -- RFM scoring -------------------------------------------------------------
-
 def build_rfm(df, ref_date=None):
     if ref_date is None:
         ref_date = df['InvoiceDate'].max() + pd.Timedelta(days=1)
@@ -71,7 +69,6 @@ def _segment_label(score):
 
 
 # -- rolling statistics ------------------------------------------------------
-
 def build_rolling_stats(df, windows=[7, 30]):
     daily = df.groupby(df['InvoiceDate'].dt.date)['Revenue'].sum().reset_index()
     daily.columns = ['Date', 'Revenue']

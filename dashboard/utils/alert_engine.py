@@ -210,7 +210,6 @@ def build_html_email(churn: dict, stockout: dict, revenue: dict, note: str = "")
 
 
 # ── Email Sender ──────────────────────────────────────────────────────────────
-
 def send_email(
     sender: str,
     password: str,

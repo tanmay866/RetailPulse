@@ -255,7 +255,6 @@ def log_dataset_stats(df, train, test, stationarity_result, missing_dates_filled
 # ---------------------------------------------------------------------------
 # Prophet
 # ---------------------------------------------------------------------------
-
 def train_prophet(train_df, target='Revenue', yearly_seasonality=True, weekly_seasonality=True):
     """Fit a Prophet model on the training DataFrame.
 
@@ -587,7 +586,6 @@ def forecast_lstm(model, train_series, steps, scaler, seq_len=30):
 # ---------------------------------------------------------------------------
 # Shared plotting + MLflow logging for model runs
 # ---------------------------------------------------------------------------
-
 def plot_forecast_comparison(test_series, prophet_preds, lstm_preds,
                               save_path='reports/figures/forecast_comparison.png'):
     """Plot actual vs Prophet vs LSTM on the test window and save to disk."""

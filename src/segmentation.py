@@ -9,7 +9,6 @@ from kneed import KneeLocator
 
 
 # -- preprocessing -----------------------------------------------------------
-
 def preprocess_rfm(rfm):
     # log-transform Monetary to reduce right skew, then scale all 3
     rfm_clean = rfm[['Recency', 'Frequency', 'Monetary']].copy()
@@ -23,7 +22,6 @@ def preprocess_rfm(rfm):
 
 
 # -- k-means helpers ---------------------------------------------------------
-
 def elbow_analysis(X, max_k=10):
     # returns inertia per k only
     inertia = {}
@@ -79,7 +77,6 @@ def run_kmeans(X, k, random_state=42):
 
 
 # -- dbscan helpers ----------------------------------------------------------
-
 def find_eps(X, min_samples=5, random_state=42):
     # fit nearest neighbors to get k-distances
     nn = NearestNeighbors(n_neighbors=min_samples)
@@ -113,7 +110,6 @@ def run_dbscan(X, eps, min_samples=5, random_state=42):
 
 
 # -- evaluation --------------------------------------------------------------
-
 def evaluate_clusters(X, labels):
     # filter out noise points (-1) before computing any metric
     mask = labels != -1
@@ -132,14 +128,12 @@ def evaluate_clusters(X, labels):
 
 
 # -- visualization helpers ---------------------------------------------------
-
 def reduce_to_2d(X_scaled, random_state=42):
     pca = PCA(n_components=2, random_state=random_state)
     return pca.fit_transform(X_scaled)
 
 
 # -- profiling and labeling --------------------------------------------------
-
 def cluster_profiles(rfm_clean, labels):
     # uses unscaled rfm_clean so mean values are real numbers, not z-scores
     df = rfm_clean.copy()
@@ -186,7 +180,6 @@ def assign_business_labels(rfm_clean, labels):
 
 
 # -- outlier removal ---------------------------------------------------------
-
 def remove_outliers(X_scaled, threshold=3.0):
     # flag rows where any feature is more than threshold std devs from mean
     outlier_mask = np.any(np.abs(X_scaled) > threshold, axis=1)

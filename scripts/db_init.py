@@ -167,8 +167,8 @@ CREATE INDEX IF NOT EXISTS idx_retail_date    ON retail_clean (invoice_date);
 CREATE INDEX IF NOT EXISTS idx_churn_cust     ON churn_predictions (customer_id);
 """
 
-# ── CSV → table mapping ───────────────────────────────────────────────────────
 
+# ── CSV → table mapping ───────────────────────────────────────────────────────
 def _norm_columns(df: pd.DataFrame) -> pd.DataFrame:
     """Lowercase column names, replace spaces with underscores."""
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
@@ -235,7 +235,6 @@ def _load_clv_predictions(conn) -> None:
 
 
 # ── Bulk upsert helper ────────────────────────────────────────────────────────
-
 def _upsert(conn, table: str, df: pd.DataFrame, conflict_col: str | None) -> None:
     cols    = list(df.columns)
     rows    = [tuple(r) for r in df.itertuples(index=False, name=None)]
@@ -259,7 +258,6 @@ def _upsert(conn, table: str, df: pd.DataFrame, conflict_col: str | None) -> Non
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
-
 def _seed_users(conn) -> None:
     """Insert demo users; skip rows that already exist (ON CONFLICT DO NOTHING)."""
     import hashlib

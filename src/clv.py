@@ -30,7 +30,6 @@ MLFLOW_RUN_NAME   = "bgf-ggf-v1"
 
 
 # ── Step 1: Build transaction summary ────────────────────────────────────────
-
 def build_transaction_summary(df: pd.DataFrame) -> pd.DataFrame:
     """Aggregate line items -> invoice level, then build lifetimes summary table."""
     txn = (
@@ -54,7 +53,6 @@ def build_transaction_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ── Step 2: Train BG/NBD ─────────────────────────────────────────────────────
-
 def train_bgf(summary: pd.DataFrame) -> BetaGeoFitter:
     bgf = BetaGeoFitter(penalizer_coef=0.01)
     bgf.fit(summary["frequency"], summary["recency"], summary["T"])
@@ -62,7 +60,6 @@ def train_bgf(summary: pd.DataFrame) -> BetaGeoFitter:
 
 
 # ── Step 3: Train Gamma-Gamma ─────────────────────────────────────────────────
-
 def train_ggf(summary: pd.DataFrame) -> GammaGammaFitter:
     repeat = summary[summary["frequency"] > 0]
     ggf = GammaGammaFitter(penalizer_coef=0.0)
@@ -71,7 +68,6 @@ def train_ggf(summary: pd.DataFrame) -> GammaGammaFitter:
 
 
 # ── Step 4: Generate predictions ─────────────────────────────────────────────
-
 def predict_clv(
     summary: pd.DataFrame,
     bgf: BetaGeoFitter,
@@ -123,7 +119,6 @@ def predict_clv(
 
 
 # ── Step 5: Main pipeline ─────────────────────────────────────────────────────
-
 def run() -> None:
     print("Loading retail data…")
     raw = pd.read_csv(
