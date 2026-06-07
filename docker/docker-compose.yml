@@ -1,0 +1,140 @@
+# RetailPulse — full application stack
+#
+# Run from the project root:
+#   docker compose -f docker/docker-compose.yml up -d
+#
+# Dashboard : http://localhost:8501
+# MLflow UI : http://localhost:5000
+# PostgreSQL: localhost:5432
+# Redis     : localhost:6379
+#
+# First-run note: db-init seeds the database (~2 min). Wait for it to
+# complete (status "Exited 0") before the dashboard becomes fully functional.
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres/${POSTGRES_DB:-retailpulse}
+  REDIS_URL: redis://redis:6379/0
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  GROQ_API_KEY: ${GROQ_API_KEY}
+  RETAILPULSE_SECRET: ${RETAILPULSE_SECRET}
+  ALERT_EMAIL_SENDER: ${ALERT_EMAIL_SENDER}
+  ALERT_EMAIL_PASSWORD: ${ALERT_EMAIL_PASSWORD}
+  ALERT_EMAIL_RECEIVER: ${ALERT_EMAIL_RECEIVER}
+
+services:
+
+  # ── Infrastructure ────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: retailpulse-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB: ${POSTGRES_DB:-retailpulse}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - retailpulse-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: retailpulse-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save ""
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - retailpulse-net
+    restart: unless-stopped
+
+  # ── MLflow tracking server ────────────────────────────────────────────────
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: retailpulse-mlflow
+    command: >
+      --backend-store-uri postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres/${POSTGRES_DB:-retailpulse}
+      --default-artifact-root /mlruns
+    volumes:
+      - mlruns-data:/mlruns
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - retailpulse-net
+    restart: unless-stopped
+
+  # ── One-shot DB initialiser ───────────────────────────────────────────────
+
+  db-init:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: retailpulse-db-init
+    command: python scripts/db_init.py --flush-redis
+    environment:
+      <<: *app-env
+    volumes:
+      - ../data/processed:/app/data/processed:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - retailpulse-net
+    restart: on-failure
+
+  # ── Streamlit dashboard ───────────────────────────────────────────────────
+
+  streamlit:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: retailpulse-app
+    environment:
+      <<: *app-env
+    volumes:
+      - ../data/processed:/app/data/processed:ro
+      - ../models:/app/models:ro
+      - ../reports/figures:/app/reports/figures:ro
+      - ../mlruns:/app/mlruns:ro
+    ports:
+      - "8501:8501"
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - retailpulse-net
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  mlruns-data:
+
+networks:
+  retailpulse-net:
+    driver: bridge

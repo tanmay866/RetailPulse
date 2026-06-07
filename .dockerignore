@@ -1,0 +1,49 @@
+# Version control
+.git/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Python artifacts
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Large raw data — not needed inside image; mount at runtime
+data/raw/
+
+# Notebooks — dev only
+notebooks/
+
+# ML checkpoints — mount specific model files via volume
+checkpoints/
+mlruns/
+mlflow.db
+
+# Secrets — never bake into the image
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Reports — figures are mounted as a read-only volume
+reports/
+
+# OS
+.DS_Store
+Thumbs.db
