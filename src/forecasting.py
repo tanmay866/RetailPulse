@@ -375,13 +375,15 @@ def tune_prophet(train_df, test_df, target='Revenue',
     fig, axes = plt.subplots(1, 2, figsize=(13, 4))
 
     axes[0].bar(x, results['mae'],  color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
-    axes[0].set_xticks(x); axes[0].set_xticklabels(labels, fontsize=9)
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(labels, fontsize=9)
     axes[0].set_title('MAE by Config', fontweight='bold')
     axes[0].set_ylabel('MAE (₹)')
     axes[0].grid(axis='y', alpha=0.3)
 
     axes[1].bar(x, results['rmse'], color=['seagreen' if i == 0 else 'steelblue' for i in x], edgecolor='white')
-    axes[1].set_xticks(x); axes[1].set_xticklabels(labels, fontsize=9)
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(labels, fontsize=9)
     axes[1].set_title('RMSE by Config (sorted best→worst)', fontweight='bold')
     axes[1].set_ylabel('RMSE (₹)')
     axes[1].grid(axis='y', alpha=0.3)

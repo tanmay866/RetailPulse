@@ -5,7 +5,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 from utils.data_loader import load_segmentation_churn_merged
