@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 from src.forecasting import (
     load_and_resample,
