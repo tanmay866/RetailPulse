@@ -39,7 +39,6 @@ rfm_clean_filtered = rfm_clean[~outlier_mask].reset_index(drop=True)
 print(f'X_clean shape: {X_clean.shape}')
 
 
-
 print('\n--- step 5: k-means - find best k on clean data ---')
 best_k = select_best_k(X_clean, max_k=10, min_cluster_pct=0.01)
 print(f'best k = {best_k}')
@@ -51,7 +50,6 @@ sizes = pd.Series(kmeans_labels).value_counts().sort_index()
 print('cluster sizes:')
 print(sizes.to_string())
 print(f'min cluster size: {sizes.min()}')
-
 
 
 print('\n--- step 7: evaluate ---')
