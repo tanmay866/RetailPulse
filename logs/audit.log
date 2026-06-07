@@ -18,3 +18,5 @@
 {"ts": "2026-06-07T07:03:20Z", "user": "admin", "action": "login", "resource": "session", "details": "role=admin"}
 {"ts": "2026-06-07T07:06:51Z", "user": "admin", "action": "login_failed", "resource": "session", "details": "bad credentials"}
 {"ts": "2026-06-07T07:06:57Z", "user": "admin", "action": "login", "resource": "session", "details": "role=admin"}
+{"ts": "2026-06-07T07:26:56Z", "user": "retailpulse.admin", "action": "login", "resource": "session", "details": "role=admin"}
+{"ts": "2026-06-07T07:28:39Z", "user": "retailpulse.admin", "action": "login", "resource": "session", "details": "role=admin"}

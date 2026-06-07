@@ -26,7 +26,12 @@ if user is None:
     st.stop()
 
 # ── Sidebar — brand + user info + logout ─────────────────────────────────────
-_ROLE_LABEL = {"admin": "Admin", "analyst": "Analyst", "viewer": "Viewer"}
+_ROLE_LABEL = {
+    "admin":          "Admin",
+    "analyst":        "Analyst",
+    "viewer":         "Viewer",
+    "data_scientist": "Data Scientist",
+}
 
 with st.sidebar:
     st.title("RetailPulse")
