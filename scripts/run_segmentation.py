@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
@@ -144,7 +143,7 @@ if 'Customer ID' not in final.columns and 'CustomerID' in final.columns:
 final = final[cols]
 
 final.to_csv('data/processed/customer_segments.csv', index=False)
-print(f'saved customer_segments.csv')
+print('saved customer_segments.csv')
 print(f'final shape: {final.shape}')
 print('\nBusiness_Label distribution:')
 print(final['Business_Label'].value_counts().to_string())
