@@ -3,6 +3,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 import streamlit as st
 from utils.ui import apply_theme
 from utils.auth import get_current_user, show_login_form, allowed_pages, logout
@@ -47,6 +50,9 @@ _ALL_PAGES = [
     ("Real-Time Alerts",   "pages/7_alerts.py",             ":material/notifications_active:"),
     ("Export & Reports",   "pages/8_export.py",             ":material/file_download:"),
     ("Audit Log",          "pages/9_audit.py",              ":material/security:"),
+    ("CLV Analysis",       "pages/10_clv.py",               ":material/monetization_on:"),
+    ("NLP Insights",       "pages/11_insights.py",          ":material/psychology:"),
+    ("Email Alerts",       "pages/12_whatsapp.py",          ":material/mark_email_unread:"),
 ]
 
 _allowed = allowed_pages(user["role"])

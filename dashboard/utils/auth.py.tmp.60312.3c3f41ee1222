@@ -40,7 +40,7 @@ _ROLE_PAGES: dict[str, set[str]] = {
         "Command Center", "Overview", "Segmentation", "Churn",
         "Customer Analytics", "Forecasting", "Inventory",
         "Real-Time Alerts", "Export & Reports", "Audit Log", "CLV Analysis",
-        "NLP Insights", "Email Alerts",
+        "NLP Insights", "WhatsApp Alerts",
     },
 }
 

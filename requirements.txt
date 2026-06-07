@@ -20,3 +20,6 @@ redis
 lightgbm
 fpdf2
 PyJWT
+lifetimes
+groq
+python-dotenv

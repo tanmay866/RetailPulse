@@ -65,6 +65,11 @@ def load_segmentation_churn_merged() -> pd.DataFrame:
     return merged
 
 
+@st.cache_data(ttl=3600)
+def load_clv_predictions() -> pd.DataFrame:
+    return pd.read_csv(DATA_PROCESSED / "clv_predictions.csv")
+
+
 def figure_path(filename: str) -> Path:
     return FIGURES_DIR / filename
 
