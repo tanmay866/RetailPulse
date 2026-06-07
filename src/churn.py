@@ -172,8 +172,10 @@ def _plot_confusion_matrix(y_test: np.ndarray, y_pred: np.ndarray, path: Path) -
     labels = ["No Churn", "Churn"]
     fig, ax = plt.subplots(figsize=(5, 4))
     im = ax.imshow(cm, cmap="Blues")
-    ax.set_xticks([0, 1]); ax.set_yticks([0, 1])
-    ax.set_xticklabels(labels); ax.set_yticklabels(labels)
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
     threshold = cm.max() / 2.0
     for i in range(2):
         for j in range(2):

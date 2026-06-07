@@ -1,14 +1,15 @@
 import sys
 from pathlib import Path
 
+import streamlit as st
+from dotenv import load_dotenv
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-import streamlit as st
-from utils.ui import apply_theme
-from utils.auth import get_current_user, show_login_form, allowed_pages, logout
+from utils.auth import get_current_user, show_login_form, allowed_pages, logout  # noqa: E402
+from utils.ui import apply_theme  # noqa: E402
 
 st.set_page_config(
     page_title="RetailPulse",

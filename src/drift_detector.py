@@ -6,7 +6,6 @@ from typing import Tuple
 
 import joblib
 import mlflow
-import numpy as np
 import pandas as pd
 
 from evidently.legacy.metric_preset.data_drift import DataDriftPreset

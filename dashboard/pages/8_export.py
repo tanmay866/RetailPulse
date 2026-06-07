@@ -7,7 +7,6 @@ from typing import Callable, TypedDict
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 
-import pandas as pd
 import streamlit as st
 
 from utils.auth import require_auth
