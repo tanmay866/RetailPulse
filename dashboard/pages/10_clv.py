@@ -6,11 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 
-import numpy as np
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import streamlit as st
 
 from utils.data_loader import (
@@ -221,7 +218,7 @@ with tab_seg:
     col_bar, col_seg = st.columns(2)
 
     with col_bar:
-        st.markdown(f"**Total 12m CLV by RFM Segment**")
+        st.markdown("**Total 12m CLV by RFM Segment**")
         fig_seg = px.bar(
             seg_clv.sort_values("Total_CLV"),
             x="Total_CLV",
@@ -254,7 +251,7 @@ with tab_seg:
             ),
             color="Avg_Alive",
             color_continuous_scale="Greens",
-            labels={"Avg_Purchases": f"Avg Predicted Purchases", "Avg_Alive": "P(Alive)"},
+            labels={"Avg_Purchases": "Avg Predicted Purchases", "Avg_Alive": "P(Alive)"},
         )
         fig_pur.update_traces(textposition="outside")
         fig_pur.update_layout(
