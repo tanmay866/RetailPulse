@@ -48,6 +48,7 @@ _user = require_auth()
 st.title("Export & Reports")
 st.caption("Download processed datasets as CSV or generate analytical PDF reports.")
 
+
 # ── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def _load() -> dict:

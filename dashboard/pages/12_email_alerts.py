@@ -20,7 +20,6 @@ from utils.alert_engine import (
 
 
 # ── DB helpers ────────────────────────────────────────────────────────────────
-
 def _ensure_table() -> None:
     """Create email_history table if it doesn't exist yet."""
     db_execute("""
@@ -198,6 +197,7 @@ with st.spinner("Checking live data…"):
     revenue_result  = check_revenue(revenue_drop)
 
 chg = revenue_result.get("change_pct")
+
 
 def _status_card(label: str, value: str, sub: str, triggered: bool) -> str:
     bg       = "#fff0f0" if triggered else "#f0fff4"

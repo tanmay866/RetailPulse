@@ -77,7 +77,6 @@ _REV_TS_RENAME = {
 
 
 # ── Core loader ───────────────────────────────────────────────────────────────
-
 def _load(
     cache_key: str,
     sql: str,
@@ -115,7 +114,6 @@ def _load(
 
 
 # ── Public loaders ────────────────────────────────────────────────────────────
-
 @st.cache_data(ttl=3600)
 def load_retail_clean() -> pd.DataFrame:
     return _load(

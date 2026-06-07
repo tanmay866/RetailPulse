@@ -12,8 +12,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*"   = ["F811"]   # pytest fixtures may shadow outer-scope names
-"scripts/*" = ["E402"]   # module-level imports not at top (path manipulation first)
+"tests/*"   = ["F811", "E402"]  # pytest fixtures may shadow outer-scope names; imports after pytestmark are intentional
+"scripts/*" = ["E402"]          # module-level imports not at top (path manipulation first)
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

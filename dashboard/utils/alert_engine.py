@@ -8,7 +8,6 @@ from email.mime.text import MIMEText
 
 
 # ── Alert Checkers ────────────────────────────────────────────────────────────
-
 def check_churn(prob_threshold: float = 0.7, min_count: int = 10) -> dict:
     from utils.data_loader import load_churn_predictions
     try:
@@ -91,7 +90,6 @@ def check_revenue(drop_threshold_pct: float = 10.0) -> dict:
 
 
 # ── Message Builders ──────────────────────────────────────────────────────────
-
 def build_plain_text(churn: dict, stockout: dict, revenue: dict, note: str = "") -> str:
     now = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
     lines = ["RetailPulse Alert Report", "=" * 40, ""]

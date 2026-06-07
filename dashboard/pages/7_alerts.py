@@ -56,6 +56,8 @@ MIN_IDX = 30  # need ≥30 rows of history for rolling stats
 # ── Severity styling ──────────────────────────────────────────────────────────
 SEV_COLOR = {"CRITICAL": "#D32F2F", "HIGH": "#E65100", "MEDIUM": "#F57F17", "LOW": "#1565C0"}
 SEV_BG    = {"CRITICAL": "#FFEBEE", "HIGH": "#FFF3E0", "MEDIUM": "#FFFDE7", "LOW": "#E3F2FD"}
+
+
 def _sev_dot(sev: str) -> str:
     """Return an inline HTML colored dot for severity (no emoji)."""
     return (

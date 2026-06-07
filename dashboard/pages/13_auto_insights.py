@@ -39,6 +39,7 @@ _SEVERITY_STYLE = {
     "neutral":  ("#f0f4ff", "#1565c0", "🔵", "INFO"),
 }
 
+
 def _insight_card(item: dict) -> str:
     sev = item.get("severity", "neutral")
     bg, border, icon, label = _SEVERITY_STYLE.get(sev, _SEVERITY_STYLE["neutral"])

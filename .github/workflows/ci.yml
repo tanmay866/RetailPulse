@@ -42,12 +42,13 @@ jobs:
           cache: pip
           cache-dependency-path: requirements-prod.txt
 
-      # Install CPU-only torch first — avoids pulling the 2 GB CUDA wheel.
+      # Install CPU-only torch first, then pass the same CPU index to the
+      # requirements install so pytorch-lightning's resolver never picks the CUDA wheel.
       - name: Install torch (CPU)
         run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Install project dependencies
-        run: pip install -r requirements-prod.txt pytest
+        run: pip install -r requirements-prod.txt pytest --extra-index-url https://download.pytorch.org/whl/cpu
 
       # Raw data (online_retail_II.csv, 94 MB) is gitignored and not available in CI.
       # Tests that require it carry pytestmark / @needs_data and are auto-skipped.

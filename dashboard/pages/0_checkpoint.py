@@ -52,6 +52,7 @@ st.caption(
     "inventory, and demand forecast in one interactive view."
 )
 
+
 # ── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def _load() -> dict:
@@ -63,6 +64,7 @@ def _load() -> dict:
         "inv":     load_inventory_recommendations(),
         "merged":  load_segmentation_churn_merged(),
     }
+
 
 @st.cache_data(show_spinner=False)
 def _forecast(horizon: int) -> pd.DataFrame:
@@ -115,6 +117,7 @@ else:
     d_start = pd.Timestamp(max_date) - pd.Timedelta(days=180)
     d_end   = pd.Timestamp(max_date)
 
+
 # ── Health score computation ──────────────────────────────────────────────────
 def _compute_scores() -> dict:
     # Revenue: compare last-30d total vs prior-30d total
@@ -162,6 +165,7 @@ def _score_label(s: float) -> str:
 
 # ── Section 1: Health Scorecard ───────────────────────────────────────────────
 st.subheader("Domain Health Scorecard")
+
 
 def _gauge_card(col: st.delta_generator.DeltaGenerator,
                 title: str, score: float, detail: str) -> None:
