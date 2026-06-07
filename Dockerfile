@@ -36,8 +36,9 @@ COPY src/        ./src/
 COPY dashboard/  ./dashboard/
 COPY scripts/    ./scripts/
 COPY .streamlit/ ./.streamlit/
+COPY models/     ./models/
 
-RUN mkdir -p data/processed data/interim data/raw models reports/figures logs \
+RUN mkdir -p data/processed data/interim data/raw reports/figures logs \
  && chown -R retailpulse:retailpulse /app
 
 USER retailpulse

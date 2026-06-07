@@ -1,0 +1,160 @@
+# Zero-trust network policies for the retailpulse namespace.
+#
+# A default-deny rule blocks all pod-to-pod traffic; each explicit policy
+# opens only the ports a workload actually needs to reach.
+#
+# Prerequisites: your CNI plugin must support NetworkPolicy.
+#   - minikube: minikube start --network-plugin=cni --cni=calico
+#   - kind:     use the kindest/node image + a Calico/Cilium overlay
+#   - cloud:    GKE Dataplane V2, EKS with Calico, AKS with Azure CNI
+#
+# If your CNI does not support NetworkPolicy the objects apply without error
+# but have no effect — traffic is unrestricted.
+---
+# 1 — Default deny: block all ingress + egress for every pod in the namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: retailpulse
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# 2 — Allow DNS so pods can resolve Kubernetes service names.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: retailpulse
+spec:
+  podSelector: {}
+  policyTypes: [Egress]
+  egress:
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# 3 — Streamlit: ingress from the nginx controller, egress to postgres/redis/mlflow.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: streamlit-policy
+  namespace: retailpulse
+spec:
+  podSelector:
+    matchLabels:
+      app: streamlit
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8501
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app: mlflow
+      ports:
+        - protocol: TCP
+          port: 5000
+---
+# 4 — MLflow: ingress from streamlit + ingress controller, egress to postgres.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mlflow-policy
+  namespace: retailpulse
+spec:
+  podSelector:
+    matchLabels:
+      app: mlflow
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: streamlit
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 5000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+# 5 — PostgreSQL: ingress only from streamlit, mlflow, and the db-init job.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-policy
+  namespace: retailpulse
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: streamlit
+        - podSelector:
+            matchLabels:
+              app: mlflow
+        - podSelector:
+            matchLabels:
+              app: db-init
+      ports:
+        - protocol: TCP
+          port: 5432
+---
+# 6 — Redis: ingress only from streamlit and the db-init job.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-policy
+  namespace: retailpulse
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: streamlit
+        - podSelector:
+            matchLabels:
+              app: db-init
+      ports:
+        - protocol: TCP
+          port: 6379

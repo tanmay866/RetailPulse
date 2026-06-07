@@ -1,0 +1,41 @@
+# Namespace-level resource guardrails.
+#
+# ResourceQuota — hard ceiling on total compute the namespace can claim.
+# LimitRange   — per-container defaults so pods without explicit requests/limits
+#                still get sensible values (and aren't rejected by the admission webhook).
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: retailpulse-quota
+  namespace: retailpulse
+spec:
+  hard:
+    requests.cpu:           "4"
+    requests.memory:        "6Gi"
+    limits.cpu:             "8"
+    limits.memory:          "12Gi"
+    persistentvolumeclaims: "5"
+    pods:                   "20"
+    services:               "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: retailpulse-limits
+  namespace: retailpulse
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu:    "500m"
+        memory: "256Mi"
+      defaultRequest:
+        cpu:    "100m"
+        memory: "128Mi"
+      max:
+        cpu:    "2"
+        memory: "4Gi"
+      min:
+        cpu:    "50m"
+        memory: "64Mi"

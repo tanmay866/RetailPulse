@@ -1,0 +1,28 @@
+[tool.ruff]
+line-length    = 100
+target-version = "py311"
+exclude        = ["notebooks/", "*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501",  # line-too-long — many Streamlit/SQL strings are intentionally long
+    "E741",  # ambiguous variable names — ML code uses l, O legitimately
+    "F841",  # local variable assigned but never used — common in exploratory scripts
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*"   = ["F811"]   # pytest fixtures may shadow outer-scope names
+"scripts/*" = ["E402"]   # module-level imports not at top (path manipulation first)
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"
+markers   = [
+    "needs_data: skip when required CSV data files are not present on disk",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+    "ignore::FutureWarning",
+]

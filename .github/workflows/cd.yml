@@ -1,0 +1,139 @@
+name: CD
+
+# Runs on every merge to main.
+# Recommend enabling branch protection on main that requires CI to pass before merge.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # ── Build & Push Docker Images ───────────────────────────────────────────────
+  build-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write    # required to push to ghcr.io
+
+    outputs:
+      image_tag: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # App image — built from root Dockerfile (multi-stage, CPU torch)
+      - name: Build and push app image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/retailpulse-app:latest
+            ghcr.io/${{ github.repository_owner }}/retailpulse-app:${{ github.sha }}
+          # GitHub Actions cache — drastically speeds up repeated builds
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+      # MLflow image — thin image from docker/Dockerfile.mlflow
+      - name: Build and push MLflow image
+        uses: docker/build-push-action@v5
+        with:
+          context: docker
+          file: docker/Dockerfile.mlflow
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/retailpulse-mlflow:latest
+            ghcr.io/${{ github.repository_owner }}/retailpulse-mlflow:${{ github.sha }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+  # ── Deploy to Kubernetes ─────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Kubernetes
+    needs: build-push
+    runs-on: ubuntu-latest
+    environment: production   # triggers optional manual approval gate in GitHub UI
+
+    env:
+      IMAGE_TAG: ${{ needs.build-push.outputs.image_tag }}
+      REGISTRY:  ghcr.io/${{ github.repository_owner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.29.0"
+
+      # KUBECONFIG_B64 — base64-encoded kubeconfig for the target cluster.
+      # Add it under: repo → Settings → Secrets → Actions → New repository secret.
+      # Generate: cat ~/.kube/config | base64 -w 0
+      # If not set, this step emits a warning and all subsequent steps are skipped.
+      - name: Configure kubeconfig
+        id: kubeconfig
+        env:
+          KUBECONFIG_B64: ${{ secrets.KUBECONFIG_B64 }}
+        run: |
+          if [ -z "$KUBECONFIG_B64" ]; then
+            echo "::warning::KUBECONFIG_B64 secret not configured — deployment skipped."
+            echo "configured=false" >> $GITHUB_OUTPUT
+          else
+            mkdir -p $HOME/.kube
+            echo "$KUBECONFIG_B64" | base64 -d > $HOME/.kube/config
+            chmod 600 $HOME/.kube/config
+            echo "configured=true" >> $GITHUB_OUTPUT
+          fi
+
+      # Apply cluster-scoped resources (namespace, config, secrets) idempotently.
+      - name: Apply base manifests
+        if: steps.kubeconfig.outputs.configured == 'true'
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/resourcequota.yaml
+          kubectl apply -f k8s/networkpolicy.yaml
+          kubectl apply -f k8s/postgres/
+          kubectl apply -f k8s/redis/
+          kubectl apply -f k8s/mlflow/
+          kubectl apply -f k8s/streamlit/
+          kubectl apply -f k8s/poddisruptionbudget.yaml
+          kubectl apply -f k8s/hpa.yaml
+          kubectl apply -f k8s/ingress.yaml
+
+      # Roll out the newly-built images without re-applying the entire StatefulSet.
+      - name: Roll out new images
+        if: steps.kubeconfig.outputs.configured == 'true'
+        run: |
+          kubectl set image deployment/streamlit \
+            streamlit=$REGISTRY/retailpulse-app:$IMAGE_TAG \
+            -n retailpulse
+
+          kubectl set image deployment/mlflow \
+            mlflow=$REGISTRY/retailpulse-mlflow:$IMAGE_TAG \
+            -n retailpulse
+
+      # Wait for rollout to complete — fails the job if pods don't become Ready.
+      - name: Verify rollout
+        if: steps.kubeconfig.outputs.configured == 'true'
+        run: |
+          kubectl rollout status deployment/streamlit -n retailpulse --timeout=300s
+          kubectl rollout status deployment/mlflow    -n retailpulse --timeout=120s
+
+      - name: Print deployed image tags
+        if: steps.kubeconfig.outputs.configured == 'true'
+        run: |
+          echo "Deployed:"
+          echo "  app   → $REGISTRY/retailpulse-app:$IMAGE_TAG"
+          echo "  mlflow→ $REGISTRY/retailpulse-mlflow:$IMAGE_TAG"

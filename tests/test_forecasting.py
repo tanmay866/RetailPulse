@@ -1,7 +1,17 @@
 """Unit tests for src/forecasting.py — Day 5 Prophet baseline pipeline."""
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
+
+# Skip the entire module in CI / any environment where the raw dataset is absent.
+# online_retail_II.csv is 94 MB and is gitignored — it won't be present in CI runners.
+_RAW_CSV = Path(__file__).resolve().parents[1] / "data" / "raw" / "online_retail_II.csv"
+pytestmark = pytest.mark.skipif(
+    not _RAW_CSV.exists(),
+    reason="online_retail_II.csv not available — forecasting tests require raw data",
+)
 
 from src.forecasting import (
     load_and_resample,

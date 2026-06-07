@@ -1,0 +1,38 @@
+# PodDisruptionBudgets prevent Kubernetes from evicting all pods of a workload
+# simultaneously during voluntary disruptions (node drains, rolling upgrades,
+# cluster autoscaler scale-downs, etc.).
+#
+# policy/v1 requires Kubernetes >= 1.21 (GA in 1.25).
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres-pdb
+  namespace: retailpulse
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: postgres
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: streamlit-pdb
+  namespace: retailpulse
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: streamlit
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mlflow-pdb
+  namespace: retailpulse
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: mlflow

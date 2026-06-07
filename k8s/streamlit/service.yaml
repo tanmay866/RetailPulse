@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: streamlit
+  namespace: retailpulse
+  labels:
+    app: streamlit
+spec:
+  selector:
+    app: streamlit
+  ports:
+    - name: http
+      port: 8501
+      targetPort: 8501

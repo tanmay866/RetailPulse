@@ -1,0 +1,17 @@
+# Headless service — required by the StatefulSet for pod DNS.
+# Other pods reach Postgres at hostname "postgres" within the namespace.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: retailpulse
+  labels:
+    app: postgres
+spec:
+  clusterIP: None      # headless — DNS resolves directly to pod IP
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

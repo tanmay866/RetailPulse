@@ -1,0 +1,107 @@
+# One-shot Job — creates the PostgreSQL schema and seeds all tables from CSVs.
+# Run once after the cluster is first provisioned, before the Streamlit deployment.
+#
+# Apply:  kubectl apply -f k8s/jobs/db-init.yaml -n retailpulse
+# Logs:   kubectl logs -f job/retailpulse-db-init -n retailpulse
+#
+# Data volume note:
+#   hostPath below points to the local data/processed/ directory.
+#   minikube: minikube mount $(pwd)/data/processed:/data/processed
+#             then set path: /data/processed
+#   Docker Desktop: set path to the Windows/Mac absolute path below.
+#   Cloud clusters: replace hostPath with a pre-populated PVC or an initContainer
+#                   that downloads the data from object storage (S3/GCS/Azure Blob).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retailpulse-db-init
+  namespace: retailpulse
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: db-init
+    spec:
+      restartPolicy: OnFailure
+
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -U postgres; do
+                echo "waiting for postgres…"; sleep 3
+              done
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: retailpulse-secret
+                  key: POSTGRES_PASSWORD
+          securityContext:
+            runAsUser: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+        - name: wait-for-redis
+          image: redis:7-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until redis-cli -h redis ping | grep -q PONG; do
+                echo "waiting for redis…"; sleep 3
+              done
+          securityContext:
+            runAsUser: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+      containers:
+        - name: db-init
+          image: retailpulse-app:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "scripts/db_init.py", "--flush-redis"]
+          envFrom:
+            - configMapRef:
+                name: retailpulse-config
+            - secretRef:
+                name: retailpulse-secret
+          volumeMounts:
+            - name: processed-data
+              mountPath: /app/data/processed
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop: [ALL]
+
+      volumes:
+        - name: processed-data
+          hostPath:
+            path: /data/retailpulse/processed
+            type: DirectoryOrCreate
+        - name: tmp
+          emptyDir: {}

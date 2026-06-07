@@ -1,0 +1,52 @@
+# Nginx Ingress — exposes Streamlit and MLflow via host-based routing.
+#
+# Prerequisites:
+#   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/cloud/deploy.yaml
+#
+# Local dev (minikube):
+#   minikube addons enable ingress
+#   Add to /etc/hosts (or C:\Windows\System32\drivers\etc\hosts on Windows):
+#     127.0.0.1  retailpulse.local  mlflow.retailpulse.local
+#
+# Access:
+#   Dashboard : http://retailpulse.local
+#   MLflow    : http://mlflow.retailpulse.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: retailpulse-ingress
+  namespace: retailpulse
+  annotations:
+    # WebSocket support — required by Streamlit
+    nginx.ingress.kubernetes.io/proxy-read-timeout:    "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout:    "3600"
+    nginx.ingress.kubernetes.io/proxy-http-version:    "1.1"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    # Upload limit for export/report generation
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: retailpulse.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: streamlit
+                port:
+                  number: 8501
+
+    - host: mlflow.retailpulse.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mlflow
+                port:
+                  number: 5000
