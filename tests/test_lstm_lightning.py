@@ -10,7 +10,6 @@ from src.lstm_lightning import (
     RetailDataset,
     RetailDataModule,
     LSTMLightning,
-    build_trainer,
 )
 
 
