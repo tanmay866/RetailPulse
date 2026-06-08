@@ -50,3 +50,6 @@ checkpoints/
 # MLflow - local tracking database and run artifacts
 mlflow.db
 mlruns/
+
+# Runtime logs
+logs/
