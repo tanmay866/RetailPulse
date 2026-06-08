@@ -38,6 +38,9 @@ def _ensure_table() -> None:
     """)
 
 
+_HISTORY_KEY = "_email_history"  # st.session_state fallback key
+
+
 def _save_email(
     sent_by: str,
     recipient: str,
@@ -48,42 +51,63 @@ def _save_email(
     status: str,
     error_msg: str = "",
 ) -> None:
+    record = {
+        "sent_at":         datetime.datetime.now().strftime("%d %b %Y %H:%M"),
+        "sent_by":         sent_by,
+        "recipient":       recipient,
+        "subject":         subject,
+        "churn_high_risk": churn_high_risk,
+        "stockout_skus":   stockout_skus,
+        "revenue_change":  revenue_change,
+        "status":          status,
+        "error_msg":       error_msg,
+    }
     with get_conn() as conn:
-        if conn is None:
+        if conn is not None:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO email_history
+                       (sent_by, recipient, subject, churn_high_risk,
+                        stockout_skus, revenue_change, status, error_msg)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                    (sent_by, recipient, subject,
+                     int(churn_high_risk) if str(churn_high_risk).isdigit() else None,
+                     int(stockout_skus)   if str(stockout_skus).isdigit()   else None,
+                     revenue_change, status, error_msg),
+                )
             return
-        with conn.cursor() as cur:
-            cur.execute(
-                """INSERT INTO email_history
-                   (sent_by, recipient, subject, churn_high_risk,
-                    stockout_skus, revenue_change, status, error_msg)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                (sent_by, recipient, subject,
-                 int(churn_high_risk) if str(churn_high_risk).isdigit() else None,
-                 int(stockout_skus)   if str(stockout_skus).isdigit()   else None,
-                 revenue_change, status, error_msg),
-            )
+    # DB unavailable — store in session state
+    if _HISTORY_KEY not in st.session_state:
+        st.session_state[_HISTORY_KEY] = []
+    st.session_state[_HISTORY_KEY].insert(0, record)
 
 
 def _load_history(limit: int = 100) -> pd.DataFrame:
     with get_conn() as conn:
-        if conn is None:
-            return pd.DataFrame()
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT sent_at, sent_by, recipient, subject,
-                          churn_high_risk, stockout_skus,
-                          revenue_change, status, error_msg
-                   FROM email_history
-                   ORDER BY sent_at DESC
-                   LIMIT %s""",
-                (limit,),
-            )
-            cols = [d[0] for d in cur.description]
-            rows = cur.fetchall()
-    if not rows:
-        return pd.DataFrame()
-    df = pd.DataFrame(rows, columns=cols)
-    df["sent_at"] = pd.to_datetime(df["sent_at"]).dt.strftime("%d %b %Y %H:%M")
+        if conn is not None:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """SELECT sent_at, sent_by, recipient, subject,
+                              churn_high_risk, stockout_skus,
+                              revenue_change, status, error_msg
+                       FROM email_history
+                       ORDER BY sent_at DESC
+                       LIMIT %s""",
+                    (limit,),
+                )
+                cols = [d[0] for d in cur.description]
+                rows = cur.fetchall()
+            if not rows:
+                return pd.DataFrame()
+            df = pd.DataFrame(rows, columns=cols)
+            df["sent_at"] = pd.to_datetime(df["sent_at"]).dt.strftime("%d %b %Y %H:%M")
+        else:
+            # DB unavailable — read from session state
+            rows = st.session_state.get(_HISTORY_KEY, [])[:limit]
+            if not rows:
+                return pd.DataFrame()
+            df = pd.DataFrame(rows)
+
     df = df.rename(columns={
         "sent_at":         "Time",
         "sent_by":         "Sent By",
@@ -95,7 +119,8 @@ def _load_history(limit: int = 100) -> pd.DataFrame:
         "status":          "Status",
         "error_msg":       "Error",
     })
-    df = df.drop(columns=["Error"], errors="ignore") if df.get("Error", pd.Series()).eq("").all() else df
+    if "Error" in df.columns and df["Error"].fillna("").eq("").all():
+        df = df.drop(columns=["Error"])
     return df
 
 # ── Auth (admin only) ─────────────────────────────────────────────────────────
