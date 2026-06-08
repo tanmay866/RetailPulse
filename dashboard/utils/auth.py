@@ -159,6 +159,14 @@ def get_current_user() -> dict | None:
         _clear_token_from_url()
         _delete_cookie()
         return None
+
+    # Re-inject into URL on every render so F5 works regardless of which page
+    # the user is on. Setting st.query_params in the main body does NOT trigger
+    # a rerun (Streamlit 1.34+), so this is safe to call unconditionally.
+    st.session_state["_jwt"] = token
+    if _PARAM_NAME not in st.query_params:
+        st.query_params[_PARAM_NAME] = token
+
     return {"username": payload["sub"], "role": payload["role"]}
 
 
