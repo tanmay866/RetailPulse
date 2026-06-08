@@ -90,20 +90,20 @@ _ROLE_PAGES: dict[str, set[str]] = {
     "analyst": {
         "Overview", "Segmentation", "Churn", "Customer Analytics",
         "Forecasting", "Inventory", "Real-Time Alerts", "CLV Analysis",
-        "NLP Insights", "Auto-Insights",
+        "NLP Insights",
     },
     # Data Scientist — ML controls + modelling pages; no export/audit/email.
     "data_scientist": {
         "Command Center", "Overview", "Segmentation", "Churn",
         "Customer Analytics", "Forecasting", "Inventory",
-        "CLV Analysis", "NLP Insights", "Real-Time Alerts", "Auto-Insights",
+        "CLV Analysis", "NLP Insights", "Real-Time Alerts",
     },
     # Admin — full access to every page.
     "admin": {
         "Command Center", "Overview", "Segmentation", "Churn",
         "Customer Analytics", "Forecasting", "Inventory",
         "Real-Time Alerts", "Export & Reports", "Audit Log", "CLV Analysis",
-        "NLP Insights", "Email Alerts", "Auto-Insights",
+        "NLP Insights", "Email Alerts",
     },
 }
 

@@ -60,7 +60,6 @@ _ALL_PAGES = [
     ("CLV Analysis",       "pages/10_clv.py",               ":material/monetization_on:"),
     ("NLP Insights",       "pages/11_insights.py",          ":material/psychology:"),
     ("Email Alerts",       "pages/12_email_alerts.py",      ":material/mark_email_unread:"),
-    ("Auto-Insights",      "pages/13_auto_insights.py",     ":material/auto_awesome:"),
 ]
 
 _allowed = allowed_pages(user["role"])
