@@ -158,10 +158,10 @@ def build_overview_pdf(D: dict, figures_dir: Path) -> bytes:
         total_orders = kpis.get("total_orders",     0)
         aov          = kpis.get("avg_order_value",  0)
     pdf.kpi_row([
-        ("Total Revenue",      f"GBP {total_rev:,.0f}"),
+        ("Total Revenue",      f"Rs {total_rev:,.0f}"),
         ("Unique Customers",   f"{uniq_cust:,}"),
         ("Total Orders",       f"{total_orders:,}"),
-        ("Avg Order Value",    f"GBP {aov:,.2f}"),
+        ("Avg Order Value",    f"Rs {aov:,.2f}"),
     ])
 
     pdf.section("Revenue Trend")
@@ -176,7 +176,7 @@ def build_overview_pdf(D: dict, figures_dir: Path) -> bytes:
             .sum().nlargest(10).reset_index()
         )
         pdf.data_table(
-            ["#", "Product", "Revenue (GBP)"],
+            ["#", "Product", "Revenue (Rs)"],
             [
                 [i + 1, str(row["Description"])[:55], f"{row['Revenue']:,.0f}"]
                 for i, (_, row) in enumerate(top_prods.iterrows())
@@ -204,7 +204,7 @@ def build_customer_health_pdf(D: dict, figures_dir: Path) -> bytes:
         ("Total Customers",     f"{len(rfm):,}"),
         ("Segments",            f"{rfm['Segment'].nunique()}"),
         ("Avg Recency (days)",  f"{rfm['Recency'].mean():.0f}"),
-        ("Avg Monetary (GBP)",  f"{rfm['Monetary'].mean():,.0f}"),
+        ("Avg Monetary (Rs)",  f"{rfm['Monetary'].mean():,.0f}"),
     ])
     pdf.chart(figures_dir / "rfm_segments.png",      "Fig 1 - Customer Segment Distribution")
     pdf.chart(figures_dir / "rfm_distributions.png", "Fig 2 - RFM Score Distributions")
@@ -357,10 +357,10 @@ def build_full_report_pdf(D: dict, figures_dir: Path) -> bytes:
         total_orders = kpis.get("total_orders",     0)
         aov          = kpis.get("avg_order_value",  0)
     pdf.kpi_row([
-        ("Total Revenue",    f"GBP {total_rev:,.0f}"),
+        ("Total Revenue",    f"Rs {total_rev:,.0f}"),
         ("Unique Customers", f"{uniq_cust:,}"),
         ("Total Orders",     f"{total_orders:,}"),
-        ("Avg Order Value",  f"GBP {aov:,.2f}"),
+        ("Avg Order Value",  f"Rs {aov:,.2f}"),
     ])
     pdf.section("Revenue Trend")
     pdf.chart(figures_dir / "monthly_sales_trend.png", "Monthly Revenue Trend")
@@ -376,7 +376,7 @@ def build_full_report_pdf(D: dict, figures_dir: Path) -> bytes:
         ("Total Customers",    f"{len(rfm):,}"),
         ("Segments",           f"{rfm['Segment'].nunique()}"),
         ("Avg Recency",        f"{rfm['Recency'].mean():.0f} days"),
-        ("Avg Monetary (GBP)", f"{rfm['Monetary'].mean():,.0f}"),
+        ("Avg Monetary (Rs)", f"{rfm['Monetary'].mean():,.0f}"),
     ])
     pdf.section("Segment Charts")
     pdf.chart(figures_dir / "rfm_segments.png",    "Segment Distribution")
