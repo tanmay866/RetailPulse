@@ -1,14 +1,18 @@
 import sys
+import time
 from pathlib import Path
 
+_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(_ROOT))   # project root — needed for src.metrics
 
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(_ROOT / ".env")
 
 import streamlit as st
 from utils.ui import apply_theme
 from utils.auth import get_current_user, show_login_form, allowed_pages, logout
+from src.metrics import start_metrics_server, PAGE_VIEWS, PAGE_LOAD_SECONDS
 
 st.set_page_config(
     page_title="RetailPulse",
@@ -18,6 +22,12 @@ st.set_page_config(
 )
 
 apply_theme()
+
+@st.cache_resource
+def _start_metrics():
+    start_metrics_server(port=8000)
+
+_start_metrics()
 
 # ── Auth gate — show login form and halt if not authenticated ─────────────────
 # get_current_user() reads st.context.cookies (synchronous, Streamlit 1.37+)
@@ -70,4 +80,9 @@ pages = [
 ]
 
 pg = st.navigation(pages)
+_t0 = time.perf_counter()
 pg.run()
+_elapsed = time.perf_counter() - _t0
+
+PAGE_VIEWS.labels(page=pg.title).inc()
+PAGE_LOAD_SECONDS.labels(page=pg.title).observe(_elapsed)

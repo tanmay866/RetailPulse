@@ -1,0 +1,26 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+scrape_configs:
+
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # RetailPulse Streamlit application metrics
+  - job_name: retailpulse_app
+    static_configs:
+      - targets: ['streamlit:8000']
+    metrics_path: /metrics
+
+  # postgres_exporter (optional — uncomment if running alongside the stack)
+  # - job_name: postgres
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # redis_exporter (optional — uncomment if running alongside the stack)
+  # - job_name: redis
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']

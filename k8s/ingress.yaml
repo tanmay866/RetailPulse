@@ -6,11 +6,12 @@
 # Local dev (minikube):
 #   minikube addons enable ingress
 #   Add to /etc/hosts (or C:\Windows\System32\drivers\etc\hosts on Windows):
-#     127.0.0.1  retailpulse.local  mlflow.retailpulse.local
+#     127.0.0.1  retailpulse.local  mlflow.retailpulse.local  grafana.retailpulse.local
 #
 # Access:
 #   Dashboard : http://retailpulse.local
 #   MLflow    : http://mlflow.retailpulse.local
+#   Grafana   : http://grafana.retailpulse.local
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -50,3 +51,14 @@ spec:
                 name: mlflow
                 port:
                   number: 5000
+
+    - host: grafana.retailpulse.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000

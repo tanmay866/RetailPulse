@@ -1,7 +1,9 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_PROJECT_ROOT / "dashboard"))
+sys.path.insert(0, str(_PROJECT_ROOT))   # for src.metrics
 
 import streamlit as st
 
@@ -10,6 +12,9 @@ from utils.data_loader import figure_path, load_churn_predictions
 st.header("Churn Prediction")
 
 churn = load_churn_predictions()
+
+from src.metrics import CHURN_HIGH_RISK
+CHURN_HIGH_RISK.set(int(churn["predicted_churn"].sum()))
 
 # ── KPI cards ─────────────────────────────────────────────────────────────────
 at_risk    = churn["predicted_churn"].sum()

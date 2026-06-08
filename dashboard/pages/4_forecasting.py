@@ -1,7 +1,9 @@
 import sys
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(_PROJECT_ROOT))   # for src.metrics
 
 import numpy as np
 import pandas as pd
@@ -13,6 +15,9 @@ from utils.data_loader import load_daily_revenue_ts, load_prophet_model
 
 # ─────────────────────────────────────────────────────────────────────────────
 st.header("Demand Forecasting")
+
+from src.metrics import FORECAST_REQUESTS
+FORECAST_REQUESTS.inc()
 
 ts    = load_daily_revenue_ts()
 model = load_prophet_model()

@@ -16,7 +16,9 @@ import time
 from pathlib import Path
 from typing import Callable, TypedDict
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_PROJECT_ROOT / "dashboard"))
+sys.path.insert(0, str(_PROJECT_ROOT))   # for src.metrics
 
 import numpy as np
 import pandas as pd
@@ -320,10 +322,12 @@ undismissed   = [
 
 # Append new alerts to history and toast CRITICAL/HIGH
 history_ids = {h["id"] for h in st.session_state.alert_history}
+from src.metrics import ALERTS_FIRED
 for a in active_alerts:
     if a["id"] not in history_ids:
         a["fired_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
         st.session_state.alert_history.append(a)
+        ALERTS_FIRED.labels(severity=a["severity"]).inc()
         if a["severity"] in ("CRITICAL", "HIGH"):
             st.toast(
                 f"[{a['severity']}] {a['rule']}: {a['message'][:100]}",
