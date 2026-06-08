@@ -129,6 +129,7 @@ class _PDF(FPDF):  # type: ignore[misc]
 def build_overview_pdf(D: dict, figures_dir: Path) -> bytes:
     retail  = D["retail"]
     rolling = D["rolling"]
+    kpis    = D.get("kpis", {})
     pdf = _PDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -140,21 +141,27 @@ def build_overview_pdf(D: dict, figures_dir: Path) -> bytes:
     pdf.report_title("Business Overview Report", f"Data period: {dr}")
 
     pdf.section("Key Performance Indicators")
-    total_rev    = retail["Revenue"].sum()
-    uniq_cust    = retail["Customer ID"].nunique()
-    total_orders = retail["Invoice"].nunique()
-    aov          = retail.groupby("Invoice")["Revenue"].sum().mean()
+    if not retail.empty:
+        total_rev    = retail["Revenue"].sum()
+        uniq_cust    = retail["Customer ID"].nunique()
+        total_orders = retail["Invoice"].nunique()
+        aov          = retail.groupby("Invoice")["Revenue"].sum().mean()
+        pdf.kpi_row([
+            ("Transaction Lines",  f"{len(retail):,}"),
+            ("Avg Qty / Line",     f"{retail['Quantity'].mean():.1f}"),
+            ("Countries",          f"{retail['Country'].nunique()}"),
+            ("Date Range",         dr),
+        ])
+    else:
+        total_rev    = kpis.get("total_revenue",    0)
+        uniq_cust    = kpis.get("unique_customers", 0)
+        total_orders = kpis.get("total_orders",     0)
+        aov          = kpis.get("avg_order_value",  0)
     pdf.kpi_row([
         ("Total Revenue",      f"GBP {total_rev:,.0f}"),
         ("Unique Customers",   f"{uniq_cust:,}"),
         ("Total Orders",       f"{total_orders:,}"),
         ("Avg Order Value",    f"GBP {aov:,.2f}"),
-    ])
-    pdf.kpi_row([
-        ("Transaction Lines",  f"{len(retail):,}"),
-        ("Avg Qty / Line",     f"{retail['Quantity'].mean():.1f}"),
-        ("Countries",          f"{retail['Country'].nunique()}"),
-        ("Date Range",         dr),
     ])
 
     pdf.section("Revenue Trend")
@@ -163,18 +170,19 @@ def build_overview_pdf(D: dict, figures_dir: Path) -> bytes:
 
     pdf.section("Top Products by Revenue")
     pdf.chart(figures_dir / "top_products.png", "Fig 3 - Top 10 Products by Revenue")
-    top_prods = (
-        retail.groupby("Description")["Revenue"]
-        .sum().nlargest(10).reset_index()
-    )
-    pdf.data_table(
-        ["#", "Product", "Revenue (GBP)"],
-        [
-            [i + 1, str(row["Description"])[:55], f"{row['Revenue']:,.0f}"]
-            for i, (_, row) in enumerate(top_prods.iterrows())
-        ],
-        col_widths=[10, 135, 45],
-    )
+    if not retail.empty:
+        top_prods = (
+            retail.groupby("Description")["Revenue"]
+            .sum().nlargest(10).reset_index()
+        )
+        pdf.data_table(
+            ["#", "Product", "Revenue (GBP)"],
+            [
+                [i + 1, str(row["Description"])[:55], f"{row['Revenue']:,.0f}"]
+                for i, (_, row) in enumerate(top_prods.iterrows())
+            ],
+            col_widths=[10, 135, 45],
+        )
 
     pdf.section("Revenue by Country")
     pdf.chart(figures_dir / "top_countries.png", "Fig 4 - Top Countries by Revenue")
@@ -333,13 +341,21 @@ def build_full_report_pdf(D: dict, figures_dir: Path) -> bytes:
         pdf.cell(0, 6, line, align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_text_color(0, 0, 0)
 
+    kpis = D.get("kpis", {})
+
     # Section 1 - Business
     pdf.add_page()
     pdf.report_title("1  -  Business Performance")
-    total_rev    = retail["Revenue"].sum()
-    uniq_cust    = retail["Customer ID"].nunique()
-    total_orders = retail["Invoice"].nunique()
-    aov          = retail.groupby("Invoice")["Revenue"].sum().mean()
+    if not retail.empty:
+        total_rev    = retail["Revenue"].sum()
+        uniq_cust    = retail["Customer ID"].nunique()
+        total_orders = retail["Invoice"].nunique()
+        aov          = retail.groupby("Invoice")["Revenue"].sum().mean()
+    else:
+        total_rev    = kpis.get("total_revenue",    0)
+        uniq_cust    = kpis.get("unique_customers", 0)
+        total_orders = kpis.get("total_orders",     0)
+        aov          = kpis.get("avg_order_value",  0)
     pdf.kpi_row([
         ("Total Revenue",    f"GBP {total_rev:,.0f}"),
         ("Unique Customers", f"{uniq_cust:,}"),

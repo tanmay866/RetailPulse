@@ -1,6 +1,7 @@
 """Export functionality: CSV downloads and PDF analytical reports."""
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Callable, TypedDict
@@ -51,6 +52,8 @@ st.caption("Download processed datasets as CSV or generate analytical PDF report
 # ── Load data ────────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def _load() -> dict:
+    _kpis_file = ROOT / "data" / "processed" / "overview_kpis.json"
+    _kpis = json.loads(_kpis_file.read_text()) if _kpis_file.exists() else {}
     return {
         "retail":  load_retail_clean(),
         "rolling": load_daily_revenue_rolling(),
@@ -59,6 +62,7 @@ def _load() -> dict:
         "churn":   load_churn_predictions(),
         "inv":     load_inventory_recommendations(),
         "merged":  load_segmentation_churn_merged(),
+        "kpis":    _kpis,
     }
 
 with st.spinner("Loading datasets..."):
