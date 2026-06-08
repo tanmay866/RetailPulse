@@ -3,15 +3,11 @@ numpy
 scikit-learn
 matplotlib
 seaborn
-great_expectations
 openpyxl
-jupyter
-ipykernel
 kneed
 statsmodels
 mlflow
 prophet
-torch
 streamlit
 plotly
 starlette>=0.42.0,<0.49.0
@@ -19,6 +15,9 @@ psycopg2-binary
 redis
 sqlalchemy
 lightgbm
+xgboost
+optuna
+shap
 fpdf2
 PyJWT
 lifetimes

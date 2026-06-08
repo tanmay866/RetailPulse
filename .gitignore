@@ -16,20 +16,20 @@ __pycache__/
 venv/
 env/
 
-# Data - ignore large files, keep folder structure
+# Streamlit secrets (contains credentials — never commit the real values)
+.streamlit/secrets.toml
+
+# Data - ignore large raw files; processed CSVs are tracked for Streamlit deployment
 data/raw/*.csv
 data/raw/*.xlsx
 data/raw/*.xls
-data/processed/*.csv
 data/interim/*.csv
 
-# Models - large binary files
-models/*.pkl
-models/*.pt
-models/*.h5
-models/*.joblib
-models/*.model
-models/*.ckpt
+# retail_clean.csv is 72 MB — too large for git; all other processed CSVs are tracked
+data/processed/retail_clean.csv
+
+# Models - tracked for Streamlit deployment (all under 3 MB)
+# models/*.pkl  ← intentionally NOT ignored
 
 # Reports - generated outputs (can be reproduced)
 reports/figures/*.png
