@@ -11,6 +11,7 @@ import streamlit.components.v1 as _components
 
 _COOKIE_NAME = "rp_jwt"
 _COOKIE_TTL  = 28800  # 8 hours in seconds
+_PARAM_NAME  = "rp_token"
 
 
 def _set_cookie(value: str) -> None:
@@ -29,6 +30,15 @@ def _delete_cookie() -> None:
         f"max-age=0;path=/;SameSite=Lax';</script>",
         height=0,
     )
+
+
+def _save_token_to_url(token: str) -> None:
+    """Persist JWT in the URL query param — survives browser refresh reliably."""
+    st.query_params[_PARAM_NAME] = token
+
+
+def _clear_token_from_url() -> None:
+    st.query_params.pop(_PARAM_NAME, None)
 
 
 _SECRET = os.environ.get("RETAILPULSE_SECRET", "rp-dev-secret-change-in-prod")
@@ -122,11 +132,16 @@ def verify_token(token: str) -> dict | None:
 
 
 def get_current_user() -> dict | None:
-    """Return {username, role} from session state (or browser cookie on refresh)."""
+    """Return {username, role} from session state, URL param, or cookie."""
     token = st.session_state.get("_jwt")
 
-    # On page refresh session_state is empty; restore from the browser cookie.
-    # st.context.cookies is synchronous (Streamlit 1.37+) — no timing issues.
+    # On page refresh session_state is empty; restore from URL param first
+    # (most reliable on Streamlit Cloud), then fall back to browser cookie.
+    if not token:
+        token = st.query_params.get(_PARAM_NAME)
+        if token:
+            st.session_state["_jwt"] = token
+
     if not token:
         try:
             token = st.context.cookies.get(_COOKIE_NAME)
@@ -141,6 +156,7 @@ def get_current_user() -> dict | None:
     payload = verify_token(token)
     if payload is None:
         st.session_state.pop("_jwt", None)
+        _clear_token_from_url()
         _delete_cookie()
         return None
     return {"username": payload["sub"], "role": payload["role"]}
@@ -163,6 +179,7 @@ def logout(username: str) -> None:
     from utils.audit_log import log_action
     log_action(username, "logout", "session", "User logged out")
     st.session_state.pop("_jwt", None)
+    _clear_token_from_url()
     _delete_cookie()
 
 
@@ -186,7 +203,8 @@ def show_login_form() -> None:
             token = authenticate(username, password)
             if token:
                 st.session_state["_jwt"] = token
-                _set_cookie(token)  # persist in browser; survives page refresh
+                _save_token_to_url(token)  # primary: survives browser refresh
+                _set_cookie(token)         # secondary: best-effort cookie
                 payload = verify_token(token)
                 if payload:
                     log_action(payload["sub"], "login", "session", f"role={payload['role']}")
