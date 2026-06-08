@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -8,28 +9,37 @@ import streamlit as st
 
 from utils.data_loader import load_daily_revenue_rolling, load_retail_clean
 
+ROOT         = Path(__file__).resolve().parents[2]
+_KPIS_FILE   = ROOT / "data" / "processed" / "overview_kpis.json"
+
 st.header("Business Overview")
 
 retail   = load_retail_clean()
 rolling  = load_daily_revenue_rolling()
 
 # ── KPI cards ────────────────────────────────────────────────────────────────
-if retail.empty:
-    st.info(
-        "Raw transaction data (retail_clean.csv) is not available in this deployment. "
-        "KPI cards and product charts are hidden. The revenue trend below uses pre-aggregated data."
-    )
+if not retail.empty:
+    total_revenue    = retail["Revenue"].sum()
+    unique_customers = retail["Customer ID"].nunique()
+    total_orders     = retail["Invoice"].nunique()
+    avg_order_value  = retail.groupby("Invoice")["Revenue"].sum().mean()
+elif _KPIS_FILE.exists():
+    _k = json.loads(_KPIS_FILE.read_text())
+    total_revenue    = _k["total_revenue"]
+    unique_customers = _k["unique_customers"]
+    total_orders     = _k["total_orders"]
+    avg_order_value  = _k["avg_order_value"]
 else:
-    total_revenue      = retail["Revenue"].sum()
-    unique_customers   = retail["Customer ID"].nunique()
-    total_orders       = retail["Invoice"].nunique()
-    avg_order_value    = retail.groupby("Invoice")["Revenue"].sum().mean()
+    total_revenue = unique_customers = total_orders = avg_order_value = None
 
+if total_revenue is not None:
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Revenue",      f"₹{total_revenue:,.0f}")
-    c2.metric("Unique Customers",   f"{unique_customers:,}")
-    c3.metric("Total Orders",       f"{total_orders:,}")
-    c4.metric("Avg Order Value",    f"₹{avg_order_value:,.2f}")
+    c1.metric("Total Revenue",    f"£{total_revenue:,.0f}")
+    c2.metric("Unique Customers", f"{unique_customers:,}")
+    c3.metric("Total Orders",     f"{total_orders:,}")
+    c4.metric("Avg Order Value",  f"£{avg_order_value:,.2f}")
+else:
+    st.info("KPI data not available.")
 
 st.divider()
 
@@ -41,7 +51,7 @@ if not rolling.empty:
         rolling,
         x="Date",
         y=["Revenue", "rolling_7d_mean", "rolling_30d_mean"],
-        labels={"value": "Revenue (₹)", "variable": "Series"},
+        labels={"value": "Revenue (£)", "variable": "Series"},
         color_discrete_map={
             "Revenue":          "#a8c8e8",
             "rolling_7d_mean":  "#2196F3",
@@ -73,7 +83,7 @@ if not retail.empty:
         x="Revenue",
         y="Description",
         orientation="h",
-        labels={"Revenue": "Revenue (₹)", "Description": "Product"},
+        labels={"Revenue": "Revenue (£)", "Description": "Product"},
         color="Revenue",
         color_continuous_scale="Blues",
     )
