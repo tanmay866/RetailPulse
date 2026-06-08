@@ -222,59 +222,65 @@ with tab_chat:
                 st.rerun()
         st.divider()
 
-    for msg in st.session_state.nlp_messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    # Declare the message container BEFORE st.chat_input so that everything
+    # added to it (history + new response) renders above the sticky input bar.
+    chat_container = st.container()
+    prompt = st.chat_input("Ask anything about your retail data…")
 
-    if prompt := st.chat_input("Ask anything about your retail data…"):
-        st.session_state.nlp_messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    with chat_container:
+        for msg in st.session_state.nlp_messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
 
-    if st.session_state.nlp_messages and st.session_state.nlp_messages[-1]["role"] == "user":
-        try:
-            ctx = build_context()
-        except Exception as exc:
-            ctx = f"[Data context unavailable: {exc}]"
+        if prompt:
+            st.session_state.nlp_messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
 
-        system_prompt = (
-            "You are RetailPulse AI, an expert retail analytics assistant.\n"
-            "Answer questions using ONLY the data provided in the context below.\n"
-            "Be specific and cite exact numbers from the data.\n"
-            "Format responses clearly — use bullet points or short tables when helpful.\n"
-            "If a question cannot be answered from the data, say so honestly.\n"
-            "All currency values are in Indian Rupees (Rs).\n\n"
-            f"{ctx}"
-        )
-
-        api_messages = [{"role": "system", "content": system_prompt}] + [
-            {"role": m["role"], "content": m["content"]}
-            for m in st.session_state.nlp_messages[-10:]
-        ]
-
-        with st.chat_message("assistant"):
-            placeholder = st.empty()
-            full_response = ""
+        if st.session_state.nlp_messages and st.session_state.nlp_messages[-1]["role"] == "user":
             try:
-                stream = client.chat.completions.create(  # type: ignore[no-matching-overload]
-                    model="llama-3.3-70b-versatile",
-                    messages=api_messages,
-                    max_tokens=1500,
-                    stream=True,
-                )
-                for chunk in stream:
-                    text = chunk.choices[0].delta.content or ""
-                    full_response += text
-                    placeholder.markdown(full_response + "▌")
-                placeholder.markdown(full_response)
-                st.session_state.nlp_messages.append(
-                    {"role": "assistant", "content": full_response}
-                )
+                ctx = build_context()
             except Exception as exc:
-                err = str(exc)
-                if "401" in err or "invalid_api_key" in err.lower():
-                    placeholder.error("Invalid API key — please check GROQ_API_KEY.")
-                elif "429" in err or "rate_limit" in err.lower():
-                    placeholder.error("Rate limit reached. Please wait and try again.")
-                else:
-                    placeholder.error(f"Error: {exc}")
+                ctx = f"[Data context unavailable: {exc}]"
+
+            system_prompt = (
+                "You are RetailPulse AI, an expert retail analytics assistant.\n"
+                "Answer questions using ONLY the data provided in the context below.\n"
+                "Be specific and cite exact numbers from the data.\n"
+                "Format responses clearly — use bullet points or short tables when helpful.\n"
+                "If a question cannot be answered from the data, say so honestly.\n"
+                "All currency values are in Indian Rupees (Rs).\n\n"
+                f"{ctx}"
+            )
+
+            api_messages = [{"role": "system", "content": system_prompt}] + [
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.nlp_messages[-10:]
+            ]
+
+            with st.chat_message("assistant"):
+                placeholder = st.empty()
+                full_response = ""
+                try:
+                    stream = client.chat.completions.create(  # type: ignore[no-matching-overload]
+                        model="llama-3.3-70b-versatile",
+                        messages=api_messages,
+                        max_tokens=1500,
+                        stream=True,
+                    )
+                    for chunk in stream:
+                        text = chunk.choices[0].delta.content or ""
+                        full_response += text
+                        placeholder.markdown(full_response + "▌")
+                    placeholder.markdown(full_response)
+                    st.session_state.nlp_messages.append(
+                        {"role": "assistant", "content": full_response}
+                    )
+                except Exception as exc:
+                    err = str(exc)
+                    if "401" in err or "invalid_api_key" in err.lower():
+                        placeholder.error("Invalid API key — please check GROQ_API_KEY.")
+                    elif "429" in err or "rate_limit" in err.lower():
+                        placeholder.error("Rate limit reached. Please wait and try again.")
+                    else:
+                        placeholder.error(f"Error: {exc}")
