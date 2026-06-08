@@ -31,9 +31,7 @@ data/processed/retail_clean.csv
 # Models - tracked for Streamlit deployment (all under 3 MB)
 # models/*.pkl  ← intentionally NOT ignored
 
-# Reports - generated outputs (can be reproduced)
-reports/figures/*.png
-reports/figures/*.jpg
+# Reports - figures tracked for Streamlit deployment; drift reports excluded
 reports/drift/
 reports/*.json
 

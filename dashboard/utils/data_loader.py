@@ -109,7 +109,11 @@ def _load(
 
     # 3. CSV fallback
     log.warning("DB unavailable — loading %s from CSV", csv_file)
-    df = pd.read_csv(DATA_PROCESSED / csv_file, parse_dates=parse_dates)
+    csv_path = DATA_PROCESSED / csv_file
+    if not csv_path.exists():
+        log.warning("CSV %s not found — returning empty DataFrame", csv_file)
+        return pd.DataFrame()
+    df = pd.read_csv(csv_path, parse_dates=parse_dates)
     return df
 
 

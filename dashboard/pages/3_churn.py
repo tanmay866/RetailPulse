@@ -26,12 +26,18 @@ st.divider()
 st.subheader("Model Evaluation")
 
 col1, col2, col3 = st.columns(3)
-with col1:
-    st.image(str(figure_path("churn_roc_curve.png")),        caption="ROC Curve",          width="stretch")
-with col2:
-    st.image(str(figure_path("churn_confusion_matrix.png")), caption="Confusion Matrix",    width="stretch")
-with col3:
-    st.image(str(figure_path("churn_shap_summary.png")),     caption="SHAP Feature Impact", width="stretch")
+_charts = [
+    (col1, "churn_roc_curve.png",        "ROC Curve"),
+    (col2, "churn_confusion_matrix.png", "Confusion Matrix"),
+    (col3, "churn_shap_summary.png",     "SHAP Feature Impact"),
+]
+for col, fname, caption in _charts:
+    with col:
+        p = figure_path(fname)
+        if Path(p).exists():
+            st.image(str(p), caption=caption, width="stretch")
+        else:
+            st.caption(f"{caption} — chart not available")
 
 st.divider()
 
