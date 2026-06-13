@@ -7,9 +7,39 @@ on:
     branches: [main]
 
 jobs:
+  # ── Release gate: accuracy validation ────────────────────────────────────────
+  # Recomputes model metrics from committed prediction artifacts and checks them
+  # against acceptance gates. A non-zero exit blocks build-push (and therefore
+  # deploy), so an accuracy regression never reaches the cluster.
+  validate:
+    name: Accuracy Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Lightweight: validation only needs the data stack, not torch/prophet.
+      - name: Install validation dependencies
+        run: pip install pandas numpy scikit-learn
+
+      - name: Run accuracy validation gate
+        run: python -m scripts.run_validation
+
+      - name: Upload validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: accuracy-validation
+          path: reports/accuracy_validation.json
+          retention-days: 30
+
   # ── Build & Push Docker Images ───────────────────────────────────────────────
   build-push:
     name: Build & Push Images
+    needs: validate    # release gate — no images built if accuracy regresses
     runs-on: ubuntu-latest
     permissions:
       contents: read
