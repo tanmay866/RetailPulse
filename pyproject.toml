@@ -14,7 +14,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*"          = ["F811", "E402", "E302"]  # pytest fixtures may shadow outer-scope names; imports after pytestmark are intentional; section dividers before test defs are intentional
 "scripts/*"        = ["E402"]          # module-level imports not at top (path manipulation first)
-"dashboard/app.py" = ["E402"]          # load_dotenv must run before streamlit imports
+"dashboard/app.py"   = ["E402"]        # load_dotenv must run before streamlit imports
+"dashboard/pages/*"  = ["E402"]        # sys.path.insert before local imports; late src.metrics imports register Prometheus gauges
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
