@@ -24,3 +24,4 @@ lifetimes
 groq
 python-dotenv
 prometheus_client
+locust

@@ -34,6 +34,7 @@ data/processed/retail_clean.csv
 # Reports - figures tracked for Streamlit deployment; drift reports excluded
 reports/drift/
 reports/*.json
+reports/load_test.html
 
 # OS
 .DS_Store
