@@ -10,7 +10,7 @@ backed by a full MLOps pipeline.
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-deploy-326CE5?logo=kubernetes&logoColor=white)
 ![MLflow](https://img.shields.io/badge/MLflow-tracking-0194E2?logo=mlflow&logoColor=white)
 
-> **Live demo:** `https://<your-app>.streamlit.app` &nbsp;·&nbsp; sign in with the [demo accounts](#demo-accounts) below.
+> **Live demo:** https://retail-pulse-ai.streamlit.app &nbsp;·&nbsp; sign in with the [demo accounts](#demo-accounts) below.
 
 ---
 
