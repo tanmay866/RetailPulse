@@ -191,8 +191,27 @@ with st.sidebar:
                                      "✅ RetailPulse — Test Email", plain, html)
             if ok:
                 st.success("Test email sent! Check your inbox.")
+                _save_email(
+                    sent_by        = user["username"],
+                    recipient      = receiver,
+                    subject        = "✅ RetailPulse — Test Email",
+                    churn_high_risk= "",
+                    stockout_skus  = "",
+                    revenue_change = "N/A",
+                    status         = "Sent",
+                )
             else:
                 st.error(f"Failed: {msg}")
+                _save_email(
+                    sent_by        = user["username"],
+                    recipient      = receiver,
+                    subject        = "✅ RetailPulse — Test Email",
+                    churn_high_risk= "",
+                    stockout_skus  = "",
+                    revenue_change = "N/A",
+                    status         = "Failed",
+                    error_msg      = msg,
+                )
 
 # ── Alert thresholds ──────────────────────────────────────────────────────────
 st.subheader("Alert Thresholds")
