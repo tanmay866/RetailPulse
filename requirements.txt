@@ -7,6 +7,7 @@ openpyxl
 kneed
 statsmodels
 mlflow
+evidently>=0.7,<0.8
 prophet
 streamlit
 plotly
