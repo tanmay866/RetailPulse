@@ -11,6 +11,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 
+from utils.auth import require_auth
+
+require_auth()  # block access by unauthenticated users
+
 from utils.data_loader import load_daily_revenue_ts, load_prophet_model
 
 # ─────────────────────────────────────────────────────────────────────────────

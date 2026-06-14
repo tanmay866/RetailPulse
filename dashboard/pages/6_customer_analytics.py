@@ -7,6 +7,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from utils.auth import require_auth
+
+require_auth()  # block access by unauthenticated users
+
 from utils.data_loader import load_segmentation_churn_merged
 
 st.header("Customer Analytics — Segmentation × Churn Risk")

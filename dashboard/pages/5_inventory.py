@@ -21,6 +21,10 @@ import plotly.graph_objects as go
 import streamlit as st
 from scipy.stats import norm
 
+from utils.auth import require_auth
+
+require_auth()  # block access by unauthenticated users
+
 from utils.data_loader import load_inventory_recommendations
 
 # ── Constants matching inventory_optimizer.py defaults ────────────────────────

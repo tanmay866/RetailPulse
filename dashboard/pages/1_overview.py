@@ -7,6 +7,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "dashboard"))
 import plotly.express as px
 import streamlit as st
 
+from utils.auth import require_auth
+
+require_auth()  # block access by unauthenticated users
+
 from utils.data_loader import load_daily_revenue_rolling, load_retail_clean
 
 ROOT         = Path(__file__).resolve().parents[2]
