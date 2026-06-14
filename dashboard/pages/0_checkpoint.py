@@ -22,7 +22,7 @@ import streamlit as st
 
 from utils.auth import require_auth
 
-require_auth()  # block access by unauthenticated users
+require_auth(page="Command Center")  # require login + role permission
 
 from utils.data_loader import (
     load_churn_predictions,

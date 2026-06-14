@@ -12,10 +12,7 @@ import streamlit as st
 from utils.auth import require_auth
 from utils.audit_log import read_log
 
-user = require_auth()
-if user["role"] != "admin":
-    st.error("This page is restricted to administrators.")
-    st.stop()
+user = require_auth(page="Audit Log")
 
 st.header("Audit Log")
 st.caption("Security-relevant events logged by the system. Read-only.")

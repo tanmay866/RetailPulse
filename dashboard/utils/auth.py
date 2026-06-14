@@ -170,11 +170,20 @@ def get_current_user() -> dict | None:
     return {"username": payload["sub"], "role": payload["role"]}
 
 
-def require_auth() -> dict:
-    """Return the current user dict or stop the page with an error."""
+def require_auth(page: str | None = None) -> dict:
+    """Return the current user dict or stop the page with an error.
+
+    If *page* is given, also enforce that the user's role is permitted to
+    view that page (per ``_ROLE_PAGES``); otherwise stop with a permission
+    error. This guards against authenticated users reaching a page their
+    role shouldn't see by navigating to its URL directly.
+    """
     user = get_current_user()
     if user is None:
         st.error("Session expired. Please log in again.")
+        st.stop()
+    if page is not None and page not in allowed_pages(user["role"]):
+        st.error("You don't have permission to view this page.")
         st.stop()
     return user
 

@@ -9,7 +9,7 @@ import streamlit as st
 
 from utils.auth import require_auth
 
-require_auth()  # block access by unauthenticated users
+require_auth(page="Customer Analytics")  # require login + role permission
 
 from utils.data_loader import load_segmentation_churn_merged
 

@@ -23,7 +23,7 @@ from scipy.stats import norm
 
 from utils.auth import require_auth
 
-require_auth()  # block access by unauthenticated users
+require_auth(page="Inventory")  # require login + role permission
 
 from utils.data_loader import load_inventory_recommendations
 

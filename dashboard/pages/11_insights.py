@@ -12,7 +12,7 @@ from utils.auth import require_auth
 from utils.analytics_context import build_context
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
-user = require_auth()
+user = require_auth(page="NLP Insights")
 
 st.title(":material/psychology: NLP Insights")
 st.caption("AI-powered analytics — auto briefing and natural-language Q&A")

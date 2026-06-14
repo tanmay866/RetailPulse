@@ -124,7 +124,7 @@ def _load_history(limit: int = 100) -> pd.DataFrame:
     return df
 
 # ── Auth (admin only) ─────────────────────────────────────────────────────────
-user = require_auth()
+user = require_auth(page="Email Alerts")
 
 st.title(":material/mark_email_unread: Email Alerts")
 st.caption("Send automated retail health alerts to your inbox via Gmail")

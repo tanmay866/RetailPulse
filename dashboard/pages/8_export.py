@@ -42,7 +42,7 @@ ROOT        = Path(__file__).resolve().parents[2]
 FIGURES_DIR = ROOT / "reports" / "figures"
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
-_user = require_auth()
+_user = require_auth(page="Export & Reports")
 
 # ── Page ─────────────────────────────────────────────────────────────────────
 st.title("Export & Reports")
