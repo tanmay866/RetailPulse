@@ -1,3 +1,4 @@
+import datetime
 import sys
 import time
 from pathlib import Path
@@ -46,17 +47,30 @@ _ROLE_LABEL = {
     "data_scientist": "Data Scientist",
 }
 
+def _now_str() -> str:
+    """Current time as a short string, in IST when tz data is available."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %H:%M IST")
+    except Exception:
+        return datetime.datetime.now().strftime("%d %b %Y, %H:%M")
+
+
 with st.sidebar:
     st.title("RetailPulse")
     st.caption("AI-powered retail analytics")
     st.divider()
     st.caption(f"**{user['username']}**  ·  {_ROLE_LABEL.get(user['role'], user['role'])}")
+    if "_last_refresh" not in st.session_state:
+        st.session_state["_last_refresh"] = _now_str()
     if st.button("Refresh data", use_container_width=True,
                  help="Reload the latest data, clearing the in-memory and Redis caches."):
         st.cache_data.clear()   # drop Streamlit's in-memory cache
         cache.flush_all()       # drop the Redis rp:* cache
+        st.session_state["_last_refresh"] = _now_str()
         st.toast("Data refreshed.")
         st.rerun()
+    st.caption(f"Last refreshed: {st.session_state['_last_refresh']}")
     if st.button("Logout", use_container_width=True):
         logout(user["username"])
         st.rerun()
