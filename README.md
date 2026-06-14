@@ -12,6 +12,10 @@ backed by a full MLOps pipeline.
 
 > **Live demo:** https://retail-pulse-ai.streamlit.app &nbsp;·&nbsp; sign in with the [demo accounts](#demo-accounts) below.
 
+<img src="https://github.com/user-attachments/assets/ff518d1a-b124-4eb2-bcb8-634fceaf795d" width="100%" alt="RetailPulse dashboard" />
+
+<p align="center"><b>📸 <a href="docs/SCREENSHOTS.md">View all screenshots →</a></b></p>
+
 ---
 
 ## Overview
