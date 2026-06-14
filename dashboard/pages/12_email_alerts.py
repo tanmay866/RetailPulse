@@ -135,37 +135,28 @@ _ensure_table()
 # ── Sidebar — Gmail setup ─────────────────────────────────────────────────────
 with st.sidebar:
     st.subheader("Gmail Setup")
-    st.markdown(
-        "**App Password (not your Gmail password):**\n"
-        "1. Go to `myaccount.google.com`\n"
-        "2. Security → 2-Step Verification → enable\n"
-        "3. Security → **App Passwords**\n"
-        "4. Create password for 'Mail'\n"
-        "5. Copy the 16-character password"
-    )
-    st.divider()
 
-    sender = st.text_input(
-        "Sender Gmail",
-        value=os.environ.get("ALERT_EMAIL_SENDER", ""),
-        placeholder="youremail@gmail.com",
-    )
-    password = st.text_input(
-        "App Password",
-        value=os.environ.get("ALERT_EMAIL_PASSWORD", ""),
-        placeholder="xxxx xxxx xxxx xxxx",
-        type="password",
-    )
-    receiver = st.text_input(
-        "Send Alerts To",
-        value=os.environ.get("ALERT_EMAIL_RECEIVER", ""),
-        placeholder="youremail@gmail.com",
-    )
+    # Credentials come from secrets / environment only — never rendered as
+    # editable inputs, so the App Password is not exposed on a deployed app.
+    sender   = os.environ.get("ALERT_EMAIL_SENDER", "")
+    password = os.environ.get("ALERT_EMAIL_PASSWORD", "")
+    receiver = os.environ.get("ALERT_EMAIL_RECEIVER", "")
+
+    if sender and password and receiver:
+        st.success("Configured via secrets")
+        st.caption(f"Sender:  {sender}")
+        st.caption(f"Send to:  {receiver}")
+    else:
+        st.warning(
+            "Email not configured. Set `ALERT_EMAIL_SENDER`, "
+            "`ALERT_EMAIL_PASSWORD`, and `ALERT_EMAIL_RECEIVER` in your "
+            "app secrets (use a Gmail **App Password**, not your login password)."
+        )
 
     st.divider()
     if st.button("Send Test Email", use_container_width=True):
         if not sender or not password or not receiver:
-            st.error("Fill in all three email fields first.")
+            st.error("Email not configured — set the ALERT_EMAIL_* secrets first.")
         else:
             now = datetime.datetime.now().strftime("%d %b %Y, %H:%M")
             plain = (
@@ -320,7 +311,7 @@ with col_a:
     btn_label = "🚨 Send Alert Email" if any_triggered else "📤 Send Report Email"
     if st.button(btn_label, use_container_width=True, type="primary"):
         if not sender or not password or not receiver:
-            st.error("Fill in Gmail credentials in the sidebar first.")
+            st.error("Email not configured — set the ALERT_EMAIL_* secrets first.")
         else:
             html_body = build_html_email(churn_result, stockout_result, revenue_result, custom_note)
             with st.spinner("Sending email…"):
