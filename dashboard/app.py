@@ -12,6 +12,7 @@ load_dotenv(_ROOT / ".env")
 import streamlit as st
 from utils.ui import apply_theme
 from utils.auth import get_current_user, show_login_form, allowed_pages, logout
+from utils import cache
 from src.metrics import start_metrics_server, PAGE_VIEWS, PAGE_LOAD_SECONDS
 
 st.set_page_config(
@@ -50,6 +51,12 @@ with st.sidebar:
     st.caption("AI-powered retail analytics")
     st.divider()
     st.caption(f"**{user['username']}**  ·  {_ROLE_LABEL.get(user['role'], user['role'])}")
+    if st.button("Refresh data", use_container_width=True,
+                 help="Reload the latest data, clearing the in-memory and Redis caches."):
+        st.cache_data.clear()   # drop Streamlit's in-memory cache
+        cache.flush_all()       # drop the Redis rp:* cache
+        st.toast("Data refreshed.")
+        st.rerun()
     if st.button("Logout", use_container_width=True):
         logout(user["username"])
         st.rerun()
