@@ -11,6 +11,8 @@ backed by a full MLOps pipeline.
 ![MLflow](https://img.shields.io/badge/MLflow-tracking-0194E2?logo=mlflow&logoColor=white)
 
 > **Live demo:** https://retail-pulse-ai.streamlit.app &nbsp;·&nbsp; sign in with the [demo accounts](#demo-accounts) below.
+>
+> 📄 **Project report:** [REPORT.pdf](REPORT.pdf) — full write-up of vision, architecture, models, metrics & results.
 
 <img src="https://github.com/user-attachments/assets/ff518d1a-b124-4eb2-bcb8-634fceaf795d" width="100%" alt="RetailPulse dashboard" />
 
