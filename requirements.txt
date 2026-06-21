@@ -19,6 +19,7 @@ lightgbm
 xgboost
 optuna
 shap
+pytorch-lightning
 fpdf2
 PyJWT
 lifetimes
