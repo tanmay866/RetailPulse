@@ -1,0 +1,11 @@
+# Local-only overrides (not for CI/prod). Pass alongside the base file:
+#   docker compose -f docker/docker-compose.yml -f docker/docker-compose.override.local.yml up -d
+#
+# macOS runs AirPlay Receiver (ControlCenter) on port 5000, which collides
+# with MLflow. Remap MLflow's host port to 5001 to avoid the clash.
+services:
+  mlflow:
+    # !override replaces the base port list instead of merging with it,
+    # so MLflow binds only 5001 (not 5000, which AirPlay holds).
+    ports: !override
+      - "5001:5000"
