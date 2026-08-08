@@ -134,8 +134,11 @@ git clone https://github.com/tanmay866/RetailPulse.git
 cd RetailPulse
 cp .env.example .env          # adjust credentials if needed
 
-docker compose -f docker/docker-compose.yml up -d
+docker compose --env-file .env -f docker/docker-compose.yml up -d
 ```
+
+`--env-file .env` is required: with `-f docker/...`, Compose treats `docker/` as the
+project directory and would otherwise look for `docker/.env` and ignore this one.
 
 This starts PostgreSQL, Redis, MLflow, Prometheus, Grafana, seeds the database, and
 launches the dashboard. First run seeds the DB (~2 min).
